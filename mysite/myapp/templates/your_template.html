@@ -1,0 +1,228 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3-axis Semantic Cosine Distance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            background-color: #d0e1d3; /* Muted sage color */
+            min-height: 100vh; /* Set the minimum height to 100% of the viewport height */
+            display: flex; /* Add this line */
+            flex-direction: column; /* Add this line */
+        }
+
+        .section {
+            flex-grow: 1; /* Add this line */
+        }
+
+        .box-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .form-box {
+            height: 400px; /* Adjust the height as needed */
+        }
+
+        .field .control input {
+            width: 300px; /* Adjust the width as needed */
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">3-axis Semantic Cosine Distance</h1>
+            <div class="box-container">
+                <div class="column is-one-third">
+                    <div class="box form-box">
+                        <form method="post" id="plot-form">
+                            {% csrf_token %}
+                            <div class="field">
+                                {{ form.x_text.label_tag }}
+                                <div class="control">
+                                    {{ form.x_text }}
+                                </div>
+                            </div>
+                            <div class="field">
+                                {{ form.y_text.label_tag }}
+                                <div class="control">
+                                    {{ form.y_text }}
+                                </div>
+                            </div>
+                            <div class="field">
+                                {{ form.z_text.label_tag }}
+                                <div class="control">
+                                    {{ form.z_text }}
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <button type="submit" class="button is-primary">Update Plot</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="column is-two-thirds">
+                    <div class="box">
+                        <div id="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="box">
+                <label for="plot-summary-box">Plot Summary:</label>
+                <div id="plot-summary-box" class="content">
+                    <!-- Plot summary will be displayed here -->
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="box">
+                <label for="summary-box">Point Summary:</label>
+                <div id="summary-box">
+                    <div class="box">
+                        <h4 class="title is-4" id="summary-title"></h4>
+                        <h5 class="subtitle is-5" id="summary-company"></h5>
+                        <div class="progress-bars">
+                            <div class="progress-bar">
+                                <label for="x-progress" id="x-axis-label"></label>
+                                <progress id="x-progress" class="progress is-primary" value="0" max="100"></progress>
+                            </div>
+                            <div class="progress-bar">
+                                <label for="y-progress" id="y-axis-label"></label>
+                                <progress id="y-progress" class="progress is-info" value="0" max="100"></progress>
+                            </div>
+                            <div class="progress-bar">
+                                <label for="z-progress" id="z-axis-label"></label>
+                                <progress id="z-progress" class="progress is-success" value="0" max="100"></progress>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <p id="summary-description"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        // Function to update the progress bar labels and values
+        function updateProgressBars() {
+            var plot = document.getElementById('plot-container');
+            var xAxisLabel = plot.layout.scene.xaxis.title.text;
+            var yAxisLabel = plot.layout.scene.yaxis.title.text;
+            var zAxisLabel = plot.layout.scene.zaxis.title.text;
+    
+            var xMin = plot.layout.scene.xaxis.range[0];
+            var xMax = plot.layout.scene.xaxis.range[1];
+            var yMin = plot.layout.scene.yaxis.range[0];
+            var yMax = plot.layout.scene.yaxis.range[1];
+            var zMin = plot.layout.scene.zaxis.range[0];
+            var zMax = plot.layout.scene.zaxis.range[1];
+    
+            document.getElementById('x-axis-label').textContent = xAxisLabel + ':';
+            document.getElementById('y-axis-label').textContent = yAxisLabel + ':';
+            document.getElementById('z-axis-label').textContent = zAxisLabel + ':';
+    
+            document.getElementById('x-progress').min = xMin;
+            document.getElementById('x-progress').max = xMax;
+            document.getElementById('y-progress').min = yMin;
+            document.getElementById('y-progress').max = yMax;
+            document.getElementById('z-progress').min = zMin;
+            document.getElementById('z-progress').max = zMax;
+        }
+    
+        // Fetch initial plot data from Django
+        fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
+            .then(response => response.json())
+            .then(data => {
+                // Initialize the plot with the initial data and axis labels
+                console.log('Received data.layout:', data.layout);
+                Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout);
+    
+                // Update the progress bars
+                updateProgressBars();
+    
+                // Attach event listeners after the plot is initialized
+                var plot = document.getElementById('plot-container');
+                plot.on('plotly_click', function(eventData) {
+                    var point = eventData.points[0];
+                    var pointData = {
+                        customData: point.customdata,
+                        x: point.x,
+                        y: point.y,
+                        z: point.z
+                    };
+    
+                    // Send the clicked point data to the Django view function
+                    fetch('/get_point_summary/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify(pointData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.summary) {
+                            // Update the summary box with the received data
+                            document.getElementById('summary-title').textContent = data.summary.title;
+                            document.getElementById('summary-company').textContent = data.summary.company;
+                            document.getElementById('summary-description').textContent = data.summary.description;
+    
+                            // Update the progress bars with the received x, y, z values
+                            document.getElementById('x-progress').value = data.summary.x;
+                            document.getElementById('y-progress').value = data.summary.y;
+                            document.getElementById('z-progress').value = data.summary.z;
+                        } else {
+                            // Clear the summary box if no data is available
+                            document.getElementById('summary-title').textContent = '';
+                            document.getElementById('summary-company').textContent = '';
+                            document.getElementById('summary-description').textContent = '';
+    
+                            // Reset the progress bars to the minimum value
+                            document.getElementById('x-progress').value = document.getElementById('x-progress').min;
+                            document.getElementById('y-progress').value = document.getElementById('y-progress').min;
+                            document.getElementById('z-progress').value = document.getElementById('z-progress').min;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+    
+        // Update the plot when the form is submitted
+        document.getElementById('plot-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+    
+            var formData = new FormData(event.target);
+            var xText = formData.get('x_text');
+            var yText = formData.get('y_text');
+            var zText = formData.get('z_text');
+    
+            fetch(`/update_plot_data/${xText}/${yText}/${zText}/`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the plot with the new data and axis labels
+                Plotly.react('plot-container', JSON.parse(data.data), data.layout);
+    
+                // Update the progress bars
+                updateProgressBars();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
