@@ -15,7 +15,7 @@ This is a Django-based web application that provides search functionality using 
 
 
 
-git clone https://github.com/your-username/django-search-app.git
+git clone https://github.com/nickojelly/JobMarketAnalyzer
 
 
 2. Navigate to the project directory:
