@@ -1,3 +1,5 @@
 *.csv
 keys.py
 *.pyc
+*.pkl
+*.fth
