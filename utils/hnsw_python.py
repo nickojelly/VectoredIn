@@ -174,103 +174,103 @@ class HNSW(object):
         graphs.append({idx: {}})
         self._enter_point = idx
 
-    def search(self, q, k=None, ef=None):
-        """Find the k points closest to q."""
+    # def search(self, q, k=None, ef=None):
+    #     """Find the k points closest to q."""
 
-        distance = self.distance
-        graphs = self._graphs
-        point = self._enter_point
+    #     distance = self.distance
+    #     graphs = self._graphs
+    #     point = self._enter_point
 
-        if ef is None:
-            ef = self._ef
+    #     if ef is None:
+    #         ef = self._ef
 
-        if point is None:
-            raise ValueError("Empty graph")
+    #     if point is None:
+    #         raise ValueError("Empty graph")
 
-        dist = distance(q, self.data[point])
-        # look for the closest neighbor from the top to the 2nd level
-        #See how it's using and assigning point and dist (basic recursion)
-        for layer in reversed(graphs[1:]):
-            print('layer')
-            point, dist = self._search_graph_ef1(q, point, dist, layer)
-        # look for ef neighbors in the bottom level
-        ep = self._search_graph(q, [(-dist, point)], graphs[0], ef)
+    #     dist = distance(q, self.data[point])
+    #     # look for the closest neighbor from the top to the 2nd level
+    #     #See how it's using and assigning point and dist (basic recursion)
+    #     for layer in reversed(graphs[1:]):
+    #         print('layer')
+    #         point, dist = self._search_graph_ef1(q, point, dist, layer)
+    #     # look for ef neighbors in the bottom level
+    #     ep = self._search_graph(q, [(-dist, point)], graphs[0], ef)
 
-        if k is not None:
-            ep = nlargest(k, ep)
-        else:
-            ep.sort(reverse=True)
+    #     if k is not None:
+    #         ep = nlargest(k, ep)
+    #     else:
+    #         ep.sort(reverse=True)
 
-        return [(idx, -md) for md, idx in ep]
+    #     return [(idx, -md) for md, idx in ep]
 
 
-    def _search_graph_ef1(self, q, entry, dist, layer):
-        """Equivalent to _search_graph when ef=1."""
+    # def _search_graph_ef1(self, q, entry, dist, layer):
+    #     """Equivalent to _search_graph when ef=1."""
 
-        vectorized_distance = self.vectorized_distance
-        data = self.data
+    #     vectorized_distance = self.vectorized_distance
+    #     data = self.data
 
-        best = entry
-        best_dist = dist
-        candidates = [(dist, entry)]
-        visited = set([entry])
+    #     best = entry
+    #     best_dist = dist
+    #     candidates = [(dist, entry)]
+    #     visited = set([entry])
 
-        while candidates:
-            dist, c = heappop(candidates)
-            if dist > best_dist:
-                break
-            edges = [e for e in layer[c] if e not in visited]
-            visited.update(edges)
-            dists = vectorized_distance(q, [data[e] for e in edges])
-            print(f"distances: {dists}")
-            for e, dist in zip(edges, dists):
-                if dist < best_dist:
-                    best = e
-                    best_dist = dist
-                    heappush(candidates, (dist, e))
-                    # break
+    #     while candidates:
+    #         dist, c = heappop(candidates)
+    #         if dist > best_dist:
+    #             break
+    #         edges = [e for e in layer[c] if e not in visited]
+    #         visited.update(edges)
+    #         dists = vectorized_distance(q, [data[e] for e in edges])
+    #         print(f"distances: {dists}")
+    #         for e, dist in zip(edges, dists):
+    #             if dist < best_dist:
+    #                 best = e
+    #                 best_dist = dist
+    #                 heappush(candidates, (dist, e))
+    #                 # break
 
-        return best, best_dist
+    #     return best, best_dist
 
-    def _search_graph(self, q, ep, layer, ef):
+    # def _search_graph(self, q, ep, layer, ef):
 
-        vectorized_distance = self.vectorized_distance
-        data = self.data
+    #     vectorized_distance = self.vectorized_distance
+    #     data = self.data
 
-        candidates = [(-mdist, p) for mdist, p in ep]
-        heapify(candidates)
-        visited = set(p for _, p in ep)
-        print(f"visited: {visited}")
+    #     candidates = [(-mdist, p) for mdist, p in ep]
+    #     heapify(candidates)
+    #     visited = set(p for _, p in ep)
+    #     print(f"visited: {visited}")
 
-        while candidates:
-            dist, c = heappop(candidates)
-            mref = ep[0][0]
-            if dist > -mref:
-                break
-            # pprint.pprint(layer[c])
-            edges = [e for e in layer[c] if e not in visited]
-            visited.update(edges)
-            dists = vectorized_distance(q, [data[e] for e in edges])
-            for e, dist in zip(edges, dists):
-                mdist = -dist
-                if len(ep) < ef:
-                    heappush(candidates, (dist, e))
-                    heappush(ep, (mdist, e))
-                    mref = ep[0][0]
-                elif mdist > mref:
-                    heappush(candidates, (dist, e))
-                    heapreplace(ep, (mdist, e))
-                    mref = ep[0][0]
+    #     while candidates:
+    #         dist, c = heappop(candidates)
+    #         mref = ep[0][0]
+    #         if dist > -mref:
+    #             break
+    #         # pprint.pprint(layer[c])
+    #         edges = [e for e in layer[c] if e not in visited]
+    #         visited.update(edges)
+    #         dists = vectorized_distance(q, [data[e] for e in edges])
+    #         for e, dist in zip(edges, dists):
+    #             mdist = -dist
+    #             if len(ep) < ef:
+    #                 heappush(candidates, (dist, e))
+    #                 heappush(ep, (mdist, e))
+    #                 mref = ep[0][0]
+    #             elif mdist > mref:
+    #                 heappush(candidates, (dist, e))
+    #                 heapreplace(ep, (mdist, e))
+    #                 mref = ep[0][0]
 
-        return ep
+    #     return ep
 
     def serach_along_axis(self, q, k=None, ef=None, n=5):
         ### Search along the axis of the query, returning k vectors at n intervals along the axis
         #Start with finding the minimum and maximum distance along the axis
         #Then divide the axis into n intervals and search for the closest vector in each interval
         full_vector_list = {}
-        min_vecotrs = self.new_search(q,k=k,ef=ef,adj=0)
-        max_vectors = self.new_search(q,k=k,ef=ef,adj=2)
+        min_vecotrs = self.search(q,k=k,ef=ef,adj=0)
+        max_vectors = self.search(q,k=k,ef=ef,adj=2)
 
         min_dist = min_vecotrs[0][1]
         print(f"min_dist: {min_dist}, {min_vecotrs[0]}")
@@ -287,7 +287,7 @@ class HNSW(object):
         for i in range(0,n-1):
             adj = min_dist + interval*(i+1)
             print(f"adj: {adj}")
-            search_result = self.new_search(q,k=k,ef=ef,adj=adj)
+            search_result = self.search(q,k=k,ef=ef,adj=adj)
             # full_vector_list[i] = [x[0] for x in search_result]
             # print(f"{[self[x[0]] for x in search_result]=}")
             # print(f"{search_result=}")
@@ -312,7 +312,7 @@ class HNSW(object):
 
 
 
-    def new_search(self, q, k=None, ef=None, adj=0):
+    def search(self, q, k=None, ef=None, adj=0):
         """Find the k points closest to q."""
 
         distance = self.adjustable_distance
@@ -329,9 +329,9 @@ class HNSW(object):
         # look for the closest neighbor from the top to the 2nd level
         for layer in reversed(graphs[-1:]):
             print('layer')
-            point, dist = self._new_search_graph_ef1(q, point, dist, layer,adj)
+            point, dist = self._search_graph_ef1(q, point, dist, layer,adj)
         # look for ef neighbors in the bottom level
-        ep = self._new_search_graph(q, [(-dist, point)], graphs[0], ef,adj)
+        ep = self._search_graph(q, [(-dist, point)], graphs[0], ef,adj)
 
         if k is not None:
             ep = nlargest(k, ep)
@@ -340,7 +340,7 @@ class HNSW(object):
 
         return [(idx, -md) for md, idx in ep]
     
-    def _new_search_graph_ef1(self, q, entry, dist, layer,adj):
+    def _search_graph_ef1(self, q, entry, dist, layer, adj=0):
         """Equivalent to _search_graph when ef=1."""
 
         vectorized_distance = self.vectorized_distance_select_
@@ -369,7 +369,7 @@ class HNSW(object):
 
         return best, best_dist
 
-    def _new_search_graph(self, q, ep, layer, ef,adj):
+    def _search_graph(self, q, ep, layer, ef,adj=0):
 
         vectorized_distance = self.vectorized_distance_select_
         data = self.data
