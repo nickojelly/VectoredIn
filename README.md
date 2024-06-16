@@ -1,6 +1,6 @@
 # 🌟 JobMarketAnalyzer 📊📈🔍
 
-Welcome to the JobMarketAnalyzer repository! This project aims to provide a powerful tool for analyzing and visualizing job market data using cutting-edge technologies. 🚀
+Welcome to the JobMarketAnalyzer repository! This project is my submission for the Weaviate Machine Learning Engineer challenge. It aims to provide a powerful tool for analyzing and visualizing job market data using cutting-edge technologies. 🚀
 
 ## 🎯 Project Overview
 
@@ -8,8 +8,8 @@ JobMarketAnalyzer is a web application that allows users to explore and gain ins
 
 ## 🌈 Features
 
-- 📝 Semantic analysis of job listings
-- 📊 Interactive 3D visualization of job data
+- 📝 Semantic analysis on job postings related to AI and Machine Learning
+- 📊 Interactive 3D visualization of job data based on user-defined keywords
 - 🔍 Customizable axis labels for data exploration
 - 📈 Real-time updates and dynamic plot generation
 - 💡 Detailed job summary and alignment analysis
@@ -18,13 +18,12 @@ JobMarketAnalyzer is a web application that allows users to explore and gain ins
 ## 🛠️ Technologies Used
 
 - 🐍 Python
-- Weaviate! For Generative Search
 - 🌐 Django web framework
 - 📜 HTML, CSS, JavaScript
 - 📊 Plotly for interactive visualizations
-- 🧠 Natural Language Processing (NLP) techniques
-- 🤖 Machine Learning algorithms
-
+- 🧠 OpenAI API for generating embeddings
+- 🤖 Hierarchical Navigable Small World (HNSW) algorithm for efficient similarity search
+- 🗄️ Weaviate for vector storage and retrieval
 
 ## 📂 Repository Structure
 
@@ -38,4 +37,3 @@ JobMarketAnalyzer is a web application that allows users to explore and gain ins
 - `data/`: Directory for storing job market datasets
 - `static/`: Static files (CSS, JavaScript, images)
 - ...
-
