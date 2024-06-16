@@ -139,7 +139,7 @@ def plot_view(request):
 
     form = PlotForm()
 
-    plot_div, plot_data, plot_layout, corr  = generate_plot(initial_x_text, initial_y_text, initial_z_text)
+    plot_div, plot_data, plot_layout, corr = generate_plot(initial_x_text, initial_y_text, initial_z_text)
 
     context = {
         'form': form,
@@ -149,11 +149,10 @@ def plot_view(request):
         'plot_div': plot_div,
         'plot_data': json.dumps(plot_data, cls=PlotlyJSONEncoder),
         'plot_layout': plot_layout,
-        'corr': corr
+        'corr': corr,
     }
 
     return render(request, "your_template.html", context)
-
 @csrf_exempt
 def get_point_summary(request):
     if request.method == 'POST':
@@ -182,10 +181,40 @@ def get_point_summary(request):
 @csrf_exempt
 def generate_plot_summary(request):
     if request.method == 'POST':
-        # Generate the plot summary based on the current plot data
-        plot_summary = "This is a general summary of the plot. You can include any relevant information here."
-        
+        data = json.loads(request.body)
+        # uuid = data.get('uuid')
+        x_text = data.get('x_text', '')
+        y_text = data.get('y_text', '')
+        z_text = data.get('z_text', '')
+
+        distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
+        distance_df = pd.read_feather(distance_df_path)
+
+        x_max = distance_df['x_dist'].max()
+        x_min = distance_df['x_dist'].min()
+        y_max = distance_df['y_dist'].max()
+        y_min = distance_df['y_dist'].min()
+        z_max = distance_df['z_dist'].max()
+        z_min = distance_df['z_dist'].min()
+
+        min_x_uuid = distance_df.query('x_dist == @x_min').wv_uuid.values[0]
+        min_y_uuid = distance_df.query('y_dist == @y_min').wv_uuid.values[0]
+        min_z_uuid = distance_df.query('z_dist == @z_min').wv_uuid.values[0]
+
+        uuids = [min_x_uuid, min_y_uuid, min_z_uuid]
+
+
+        # job_listing = distance_df.query('wv_uuid == @uuid')
+        print(f"{uuids=}")
+
+
+        text = (x_text, y_text, z_text)
+
+
+        plot_summary = gen_utils.generate_plot_summary(uuids,text, client = weaviate_client, openai_client=openai_client)
         return JsonResponse({'summary': plot_summary})
+
+    return JsonResponse({'summary': None})
     
 @csrf_exempt
 def get_alignment_summary(request):
