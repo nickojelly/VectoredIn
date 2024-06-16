@@ -1,20 +1,27 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>3-axis Semantic Cosine Distance</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
-            background-color: #d0e1d3; /* Muted sage color */
-            min-height: 100vh; /* Set the minimum height to 100% of the viewport height */
-            display: flex; /* Add this line */
-            flex-direction: column; /* Add this line */
+            background-color: #d0e1d3;
+            /* Muted sage color */
+            min-height: 100vh;
+            /* Set the minimum height to 100% of the viewport height */
+            display: flex;
+            /* Add this line */
+            flex-direction: column;
+            /* Add this line */
         }
 
         .section {
-            flex-grow: 1; /* Add this line */
+            flex-grow: 1;
+            /* Add this line */
         }
 
         .box-container {
@@ -24,14 +31,17 @@
         }
 
         .form-box {
-            height: 400px; /* Adjust the height as needed */
+            height: 400px;
+            /* Adjust the height as needed */
         }
 
         .field .control input {
-            width: 300px; /* Adjust the width as needed */
+            width: 300px;
+            /* Adjust the width as needed */
         }
     </style>
 </head>
+
 <body>
     <section class="section">
         <div class="container">
@@ -42,30 +52,66 @@
                         <form method="post" id="plot-form">
                             {% csrf_token %}
                             <div class="field">
-                                {{ form.x_text.label_tag }}
-                                <div class="control">
-                                    {{ form.x_text }}
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" name="x_text" placeholder="Enter X-axis label"
+                                        value="{{ initial_x_text }}">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-times"></i>
+                                    </span>
                                 </div>
                             </div>
                             <div class="field">
-                                {{ form.y_text.label_tag }}
-                                <div class="control">
-                                    {{ form.y_text }}
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" name="y_text" placeholder="Enter Y-axis label"
+                                        value="{{ initial_y_text }}">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-times"></i>
+                                    </span>
                                 </div>
                             </div>
                             <div class="field">
-                                {{ form.z_text.label_tag }}
-                                <div class="control">
-                                    {{ form.z_text }}
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" name="z_text" placeholder="Enter Z-axis label"
+                                        value="{{ initial_z_text }}">
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-times"></i>
+                                    </span>
                                 </div>
                             </div>
                             <div class="field">
                                 <div class="control">
-                                    <button type="submit" class="button is-primary">Update Plot</button>
+                                    <button type="submit" class="button is-primary" id="update-button">
+                                        Update Plot
+                                    </button>
                                 </div>
                             </div>
                         </form>
                     </div>
+                    <div class="container">
+                        <div class="box">
+                            <h2 class="title is-4">Axis Correlations</h2>
+                            <div class="progress-bars">
+                                <div class="progress-bar">
+                                    <label for="xy-correlation">X vs Y:</label>
+                                    <progress id="xy-correlation" class="progress is-primary" value="{{ corr.0 }}"
+                                        max="2"></progress>
+                                </div>
+                                <div class="progress-bar">
+                                    <label for="xz-correlation">X vs Z:</label>
+                                    <progress id="xz-correlation" class="progress is-info" value="{{ corr.1 }}"
+                                        max="2"></progress>
+                                </div>
+                                <div class="progress-bar">
+                                    <label for="yz-correlation">Y vs Z:</label>
+                                    <progress id="yz-correlation" class="progress is-success" value="{{ corr.2 }}"
+                                        max="2"></progress>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
                 </div>
                 <div class="column is-two-thirds">
                     <div class="box">
@@ -75,15 +121,17 @@
             </div>
         </div>
         <div class="container">
-            <div class="box">
-                <label for="plot-summary-box">Plot Summary:</label>
-                <div id="plot-summary-box" class="content">
-                    <!-- Plot summary will be displayed here -->
+            <div class="box mb-5">
+                <h2 class="title is-4">Plot Summary</h2>
+                <div class="content">
+                    <p id="plot-summary"></p>
                 </div>
+                <button id="generate-summary-btn" class="button is-primary">Generate Plot Summary</button>
             </div>
         </div>
+        
         <div class="container">
-            <div class="box">
+            <div class="box mb-5">
                 <label for="summary-box">Point Summary:</label>
                 <div id="summary-box">
                     <div class="box">
@@ -103,13 +151,33 @@
                                 <progress id="z-progress" class="progress is-success" value="0" max="100"></progress>
                             </div>
                         </div>
+                        <button id="generate-alignment-btn" class="button is-primary">Generate Alignment Summary</button>
                     </div>
                     <div class="box">
-                        <p id="summary-description"></p>
+                        <h4 class="title is-4">Alignment Summary</h4>
+                        <div id="alignment-summary"></div>
+                    </div>
+                    <div class="box">
+                        <div class="is-collapsible">
+                            <div class="is-collapsible-trigger">
+                                <h4 class="title is-4">Job Description</h4>
+                                <a class="is-chevron">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="is-collapsible-content" style="display: none;">
+                                <div class="content">
+                                    <p id="summary-description"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        
     </section>
     <script>
         // Function to update the progress bar labels and values
@@ -118,26 +186,28 @@
             var xAxisLabel = plot.layout.scene.xaxis.title.text;
             var yAxisLabel = plot.layout.scene.yaxis.title.text;
             var zAxisLabel = plot.layout.scene.zaxis.title.text;
-    
+
             var xMin = plot.layout.scene.xaxis.range[0];
             var xMax = plot.layout.scene.xaxis.range[1];
             var yMin = plot.layout.scene.yaxis.range[0];
             var yMax = plot.layout.scene.yaxis.range[1];
             var zMin = plot.layout.scene.zaxis.range[0];
             var zMax = plot.layout.scene.zaxis.range[1];
-    
+
             document.getElementById('x-axis-label').textContent = xAxisLabel + ':';
             document.getElementById('y-axis-label').textContent = yAxisLabel + ':';
             document.getElementById('z-axis-label').textContent = zAxisLabel + ':';
-    
-            document.getElementById('x-progress').min = xMin;
-            document.getElementById('x-progress').max = xMax;
-            document.getElementById('y-progress').min = yMin;
-            document.getElementById('y-progress').max = yMax;
-            document.getElementById('z-progress').min = zMin;
-            document.getElementById('z-progress').max = zMax;
+
+            // document.getElementById('x-progress').min = xMin;
+            document.getElementById('x-progress').max = xMax - xMin;
+            // document.getElementById('y-progress').min = yMin;
+            document.getElementById('y-progress').max = yMax - yMin;
+            // document.getElementById('z-progress').min = zMin;
+            document.getElementById('z-progress').max = zMax - zMin;
         }
-    
+
+        var pointData = null;
+
         // Fetch initial plot data from Django
         fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
             .then(response => response.json())
@@ -145,67 +215,75 @@
                 // Initialize the plot with the initial data and axis labels
                 console.log('Received data.layout:', data.layout);
                 Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout);
-    
+
                 // Update the progress bars
                 updateProgressBars();
-    
+
                 // Attach event listeners after the plot is initialized
                 var plot = document.getElementById('plot-container');
-                plot.on('plotly_click', function(eventData) {
-                    var point = eventData.points[0];
-                    var pointData = {
-                        customData: point.customdata,
-                        x: point.x,
-                        y: point.y,
-                        z: point.z
-                    };
-    
-                    // Send the clicked point data to the Django view function
-                    fetch('/get_point_summary/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify(pointData)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.summary) {
-                            // Update the summary box with the received data
-                            document.getElementById('summary-title').textContent = data.summary.title;
-                            document.getElementById('summary-company').textContent = data.summary.company;
-                            document.getElementById('summary-description').textContent = data.summary.description;
-    
-                            // Update the progress bars with the received x, y, z values
-                            document.getElementById('x-progress').value = data.summary.x;
-                            document.getElementById('y-progress').value = data.summary.y;
-                            document.getElementById('z-progress').value = data.summary.z;
-                        } else {
-                            // Clear the summary box if no data is available
-                            document.getElementById('summary-title').textContent = '';
-                            document.getElementById('summary-company').textContent = '';
-                            document.getElementById('summary-description').textContent = '';
-    
-                            // Reset the progress bars to the minimum value
-                            document.getElementById('x-progress').value = document.getElementById('x-progress').min;
-                            document.getElementById('y-progress').value = document.getElementById('y-progress').min;
-                            document.getElementById('z-progress').value = document.getElementById('z-progress').min;
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-                });
+                var xMax = plot.layout.scene.xaxis.range[1];
+                plot.on('plotly_click', function (eventData) {
+    var point = eventData.points[0];
+    pointData = {
+        customData: point.customdata,
+        x: point.x,
+        y: point.y,
+        z: point.z
+    };
+
+    // Send the clicked point data to the Django view function
+    fetch('/get_point_summary/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(pointData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.summary) {
+            // Update the summary box with the received data
+            document.getElementById('summary-title').textContent = data.summary.title;
+            document.getElementById('summary-company').textContent = data.summary.company;
+            document.getElementById('summary-description').textContent = data.summary.description;
+
+            // Update the progress bars with the received x, y, z values
+            document.getElementById('x-progress').value = xMax - data.summary.x;
+            document.getElementById('y-progress').value = xMax - data.summary.y;
+            document.getElementById('z-progress').value = xMax - data.summary.z;
+
+            // Collapse the job description by default
+            var collapsible = document.querySelector('.is-collapsible');
+            collapsible.classList.remove('is-active');
+        } else {
+            // Clear the summary box if no data is available
+            document.getElementById('summary-title').textContent = '';
+            document.getElementById('summary-company').textContent = '';
+            document.getElementById('summary-description').textContent = '';
+
+            // Reset the progress bars to the minimum value
+            document.getElementById('x-progress').value = document.getElementById('x-progress').min;
+            document.getElementById('y-progress').value = document.getElementById('y-progress').min;
+            document.getElementById('z-progress').value = document.getElementById('z-progress').min;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
             });
-    
+
         // Update the plot when the form is submitted
-        document.getElementById('plot-form').addEventListener('submit', function(event) {
+        document.getElementById('plot-form').addEventListener('submit', function (event) {
             event.preventDefault();
-    
+
             var formData = new FormData(event.target);
             var xText = formData.get('x_text');
             var yText = formData.get('y_text');
             var zText = formData.get('z_text');
-    
+
+            // Add the 'is-loading' class to the button
+            document.getElementById('update-button').classList.add('is-loading');
+
             fetch(`/update_plot_data/${xText}/${yText}/${zText}/`, {
                 method: 'GET',
                 headers: {
@@ -213,16 +291,85 @@
                 },
                 credentials: 'same-origin'
             })
-            .then(response => response.json())
-            .then(data => {
-                // Update the plot with the new data and axis labels
-                Plotly.react('plot-container', JSON.parse(data.data), data.layout);
-    
-                // Update the progress bars
-                updateProgressBars();
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    // Update the plot with the new data and axis labels
+                    Plotly.react('plot-container', JSON.parse(data.data), data.layout);
+
+                    // Remove the 'is-loading' class from the button
+                    document.getElementById('update-button').classList.remove('is-loading');
+                })
+                .catch(error => console.error('Error:', error));
         });
+
+        document.getElementById('generate-summary-btn').addEventListener('click', function () {
+            fetch('/generate_plot_summary/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.summary) {
+                        document.getElementById('plot-summary').textContent = data.summary;
+                    } else {
+                        document.getElementById('plot-summary').textContent = 'No summary available.';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        function generateAlignmentSummary() {
+  if (pointData) {
+    var xText = document.querySelector('input[name="x_text"]').value;
+    var yText = document.querySelector('input[name="y_text"]').value;
+    var zText = document.querySelector('input[name="z_text"]').value;
+
+    fetch('/get_alignment_summary/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        uuid: pointData.customData,
+        x_text: xText,
+        y_text: yText,
+        z_text: zText
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.summary) {
+        document.getElementById('alignment-summary').innerHTML = data.summary;
+      } else {
+        document.getElementById('alignment-summary').textContent = 'No alignment summary available.';
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+}
+
+    document.getElementById('generate-alignment-btn').addEventListener('click', generateAlignmentSummary);
+
+    document.addEventListener('DOMContentLoaded', function () {
+    var collapsibles = document.querySelectorAll('.is-collapsible');
+    collapsibles.forEach(function (collapsible) {
+        var trigger = collapsible.querySelector('.is-collapsible-trigger');
+        var content = collapsible.querySelector('.is-collapsible-content');
+        trigger.addEventListener('click', function () {
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'none';
+            }
+        });
+    });
+});
     </script>
 </body>
+
 </html>

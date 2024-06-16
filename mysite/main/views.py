@@ -8,14 +8,13 @@ from django.conf import settings
 import os
 from .forms import PlotForm
 from django.http import JsonResponse
-from django.template.loader import render_to_string
-from django.template import RequestContext
-import traceback
 import logging
 from plotly.utils import PlotlyJSONEncoder
 import json
-from .utils import hnsw_obj,openai_client,listing_df, vectorize
+from .utils import hnsw_obj,openai_client,listing_df,weaviate_client, vectorize
+from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
+import numpy as np
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +22,10 @@ def homepage(request):
     return HttpResponse('Hello, World!')
 
 def update_plot_data(request, x_text, y_text, z_text):
-    return get_plot_data(request, x_text, y_text, z_text)
+    return get_plot_data(request, x_text, y_text, z_text, update = True)
 
-def get_plot_data(request, x_text, y_text, z_text):
-    plot_div, plot_data, plot_layout = generate_plot(x_text, y_text, z_text)
+def get_plot_data(request, x_text, y_text, z_text, update = False):
+    plot_div, plot_data, plot_layout, corr = generate_plot(x_text, y_text, z_text,update = update)
 
     # Convert plot_data to a JSON-serializable format
     plot_data_json = json.dumps(plot_data, cls=PlotlyJSONEncoder)
@@ -36,6 +35,7 @@ def get_plot_data(request, x_text, y_text, z_text):
     response_data = {
         'data': plot_data_json,
         'layout': plot_layout,
+        'corr': corr
     }
 
     print(plot_layout)
@@ -45,32 +45,33 @@ def get_plot_data(request, x_text, y_text, z_text):
 
 def update_data(x_text, y_text, z_text):
     #Process the data:
-    pass
-    # x_vector = vectorize(openai_client,x_text)
-    # y_vector = vectorize(openai_client,y_text)
-    # z_vector = vectorize(openai_client,z_text)
+    # pass
+    x_vector = vectorize(openai_client,x_text)
+    y_vector = vectorize(openai_client,y_text)
+    z_vector = vectorize(openai_client,z_text)
 
-    # x_list = hnsw_obj.serach_along_axis(x_vector, 10)
-    # y_list = hnsw_obj.serach_along_axis(y_vector, 10)
-    # z_list = hnsw_obj.serach_along_axis(z_vector, 10)
-    # full_list = x_list|y_list|z_list
+    x_list = hnsw_obj.serach_along_axis(x_vector, 10)
+    y_list = hnsw_obj.serach_along_axis(y_vector, 10)
+    z_list = hnsw_obj.serach_along_axis(z_vector, 10)
+    full_list = x_list|y_list|z_list
 
-    # distance_list = []
-    # for uuid,array in full_list.items():
-    #     print(uuid, array)
-    #     x_dist = hnsw_obj.distance(x_vector, array)
-    #     y_dist = hnsw_obj.distance(y_vector, array)
-    #     z_dist = hnsw_obj.distance(z_vector, array)
-    #     distance_list.append((uuid, x_dist, y_dist, z_dist))
+    distance_list = []
+    for uuid,array in full_list.items():
+        print(uuid, array)
+        x_dist = hnsw_obj.distance(x_vector, array)
+        y_dist = hnsw_obj.distance(y_vector, array)
+        z_dist = hnsw_obj.distance(z_vector, array)
+        distance_list.append((uuid, x_dist, y_dist, z_dist))
 
-    # distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
-    # distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
+    distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
+    distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
 
-    # distance_df.to_feather(os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth'))
+    distance_df.to_feather(os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth'))
 
-def generate_plot(x_text, y_text, z_text):
+def generate_plot(x_text, y_text, z_text, update=False):
     #Process the data:
-    update_data(x_text, y_text, z_text)
+    if update:
+        update_data(x_text, y_text, z_text)
     
     distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
     distance_df = pd.read_feather(distance_df_path)
@@ -81,6 +82,12 @@ def generate_plot(x_text, y_text, z_text):
     custom_data = distance_df.wv_uuid.values
     global_min = min(x.min(), y.min(), z.min())
     global_max = max(x.max(), y.max(), z.max())
+
+    xy_cor = np.corrcoef(x, y)[0,1]+1
+    xz_cor = np.corrcoef(x, z)[0,1]+1
+    yz_cor = np.corrcoef(y, z)[0,1]+1
+
+
 
     trace = go.Scatter3d(
         x=x,
@@ -116,7 +123,7 @@ def generate_plot(x_text, y_text, z_text):
 
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
 
-    return plot_div, [trace], layout
+    return plot_div, [trace], layout, [xy_cor, xz_cor, yz_cor]
 
 
 def test_hnsw(request):
@@ -132,7 +139,7 @@ def plot_view(request):
 
     form = PlotForm()
 
-    plot_div, plot_data, plot_layout = generate_plot(initial_x_text, initial_y_text, initial_z_text)
+    plot_div, plot_data, plot_layout, corr  = generate_plot(initial_x_text, initial_y_text, initial_z_text)
 
     context = {
         'form': form,
@@ -142,6 +149,7 @@ def plot_view(request):
         'plot_div': plot_div,
         'plot_data': json.dumps(plot_data, cls=PlotlyJSONEncoder),
         'plot_layout': plot_layout,
+        'corr': corr
     }
 
     return render(request, "your_template.html", context)
@@ -178,3 +186,38 @@ def generate_plot_summary(request):
         plot_summary = "This is a general summary of the plot. You can include any relevant information here."
         
         return JsonResponse({'summary': plot_summary})
+    
+@csrf_exempt
+def get_alignment_summary(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        uuid = data.get('uuid')
+        x_text = data.get('x_text', '')
+        y_text = data.get('y_text', '')
+        z_text = data.get('z_text', '')
+
+        distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
+        distance_df = pd.read_feather(distance_df_path)
+
+        x_max = distance_df['x_dist'].max()
+        x_min = distance_df['x_dist'].min()
+        y_max = distance_df['y_dist'].max()
+        y_min = distance_df['y_dist'].min()
+        z_max = distance_df['z_dist'].max()
+        z_min = distance_df['z_dist'].min()
+
+        dist_ranges = {
+            'x_range': [x_min, x_max],
+            'y_range': [y_min, y_max],
+            'z_range': [z_min, z_max]
+        }
+
+        if uuid:
+            job_listing = distance_df.query('wv_uuid == @uuid')
+            if not job_listing.empty:
+                text = (x_text, y_text, z_text)
+                distances = (job_listing.iloc[0]['x_dist'], job_listing.iloc[0]['y_dist'], job_listing.iloc[0]['z_dist'])
+                alignment_summary = gen_utils.generate_alignment_summary(uuid, text, distances,dist_ranges, client = weaviate_client)
+                return JsonResponse({'summary': alignment_summary})
+
+    return JsonResponse({'summary': None})

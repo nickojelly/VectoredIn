@@ -41,8 +41,6 @@ def initialize_openai_client() -> openai.Client:
     # Initialize the OpenAI client
     openai_client = openai.Client(api_key=openai_api_key)
 
-    print(f"OpenAI API key loaded {openai_client}")
-
     return openai_client
 
 listing_df: pd.DataFrame = None
@@ -59,13 +57,21 @@ weaviate_client = None
 
 def initialize_weaviate_client() -> openai.Client:
     global weaviate_client  # Declare that you're modifying the global variable
+
+    wdc_url = os.environ.get("WEAVIATE_URL")
+    wdc_api_key = os.environ.get("WEAVIATE_KEY")
+    openai_api_key = os.environ.get('OPENAI_API_KEY')
+
+    print
+
+    print(f"Itinializing Weaviate client with url {wdc_url} and api key {wdc_api_key}")
     
     weaviate_client = weaviate.connect_to_wcs(
-    cluster_url=os.getenv("WCD_URL"),
-    auth_credentials=weaviate.auth.AuthApiKey(os.getenv("WCD_API_KEY")),
-    headers={
-        "X-OpenAI-Api-Key": os.environ["OPENAI_APIKEY"]  # Replace with your inference API key
-        }
+        cluster_url=wdc_url,
+        auth_credentials=weaviate.auth.AuthApiKey(wdc_api_key),
+        headers={
+        "X-OpenAI-Api-Key": openai_api_key  # Replace with your inference API key
+    }
     )
 
     return weaviate_client

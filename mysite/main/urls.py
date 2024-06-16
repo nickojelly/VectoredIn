@@ -27,5 +27,6 @@ urlpatterns = [
     path('update_plot_data/<str:x_text>/<str:y_text>/<str:z_text>/', views.update_plot_data, name='update_plot_data'),
     path('get_plot_data/<str:x_text>/<str:y_text>/<str:z_text>/', views.get_plot_data, name='get_plot_data'),
     path('get_point_summary/', views.get_point_summary, name='get_point_summary'),
-    path('generate_plot_summary/', views.generate_plot_summary, name='generate_plot_summary')
+    path('generate_plot_summary/', views.generate_plot_summary, name='generate_plot_summary'),
+    path('get_alignment_summary/', views.get_alignment_summary, name='get_alignment_summary'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
