@@ -66,15 +66,16 @@ def update_data(x_text, y_text, z_text):
     distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
     distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
 
-    distance_df.to_feather(os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth'))
+    # distance_df.to_feather(os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth'))
+    return distance_df
 
 def generate_plot(x_text, y_text, z_text, update=False):
     #Process the data:
     if update:
-        update_data(x_text, y_text, z_text)
-    
-    distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
-    distance_df = pd.read_feather(distance_df_path)
+        distance_df = update_data(x_text, y_text, z_text)
+    else: 
+        distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
+        distance_df = pd.read_feather(distance_df_path)
     # distance_df = distance_df.sample(n=10)
     x = distance_df['x_dist'].values
     y = distance_df['y_dist'].values
@@ -86,8 +87,6 @@ def generate_plot(x_text, y_text, z_text, update=False):
     xy_cor = np.corrcoef(x, y)[0,1]+1
     xz_cor = np.corrcoef(x, z)[0,1]+1
     yz_cor = np.corrcoef(y, z)[0,1]+1
-
-
 
     trace = go.Scatter3d(
         x=x,
@@ -108,7 +107,6 @@ def generate_plot(x_text, y_text, z_text, update=False):
     )
 
     layout = dict(
-        # title='t-SNE plot',
         scene=dict(
             aspectmode='cube',
             xaxis=dict(range=[global_min, global_max],title=x_text),
@@ -117,7 +115,7 @@ def generate_plot(x_text, y_text, z_text, update=False):
         ),
         hovermode='closest',
         width=800,  # Adjust the width as needed
-        height=800,  # Adjust the height as needed
+        height=600,  # Adjust the height as needed
         
     )
 
