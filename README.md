@@ -2,7 +2,7 @@
 
 Welcome to the JobMarketAnalyzer repository! This project is my submission for the Weaviate Machine Learning Engineer challenge. It aims to provide a powerful tool for analyzing and visualizing job market data using cutting-edge technologies. 🚀
 
-See it live! app.nbdata.co
+See it live! https://app.nbdata.co
 
 ## 🎯 Project Overview
 
