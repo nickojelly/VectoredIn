@@ -343,10 +343,16 @@
                     document.getElementById('xz-correlation').value = data.corr[1];
                     document.getElementById('yz-correlation').value = data.corr[2];
 
+                    document.getElementById('xy-correlation-label').textContent = xText + ' - ' + yText;
+                    document.getElementById('xz-correlation-label').textContent = xText + ' - ' + zText;
+                    document.getElementById('yz-correlation-label').textContent = yText + ' - ' + zText;
+
                     // Remove the 'is-loading' class from the button
                     document.getElementById('update-button').classList.remove('is-loading');
                 })
                 .catch(error => console.error('Error:', error));
+
+                updateCorrelationBars();
         });
 
         document.getElementById('generate-summary-btn').addEventListener('click', function () {

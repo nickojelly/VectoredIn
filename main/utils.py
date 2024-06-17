@@ -30,7 +30,7 @@ def hnsw_intialize() -> hnsw_python.HNSW:
 # Define a module-level variable to store the openai_client instance
 openai_client = None
 
-def initialize_openai_client() -> openai.Client:
+def initialize_openai_client():
     global openai_client  # Declare that you're modifying the global variable
     set_env()
 
@@ -39,11 +39,15 @@ def initialize_openai_client() -> openai.Client:
     print(f"OpenAI API key loaded {openai_api_key}")
 
     # Initialize the OpenAI client
-    openai_client = openai.Client(api_key=openai_api_key)
 
-    return openai_client
+    # openai_client = openai.Client(api_key=openai_api_key)
 
+    openai.api_key = openai_api_key
+
+    return openai
 listing_df: pd.DataFrame = None
+embedding_df: pd.DataFrame = None
+query_df: pd.DataFrame = None
 
 def initialize_df() -> pd.DataFrame:
     global listing_df  # Declare that you're modifying the global variable
@@ -55,7 +59,7 @@ def initialize_df() -> pd.DataFrame:
     
 weaviate_client = None  
 
-def initialize_weaviate_client() -> openai.Client:
+def initialize_weaviate_client() :
     global weaviate_client  # Declare that you're modifying the global variable
 
     wdc_url = os.environ.get("WEAVIATE_URL")
@@ -77,10 +81,36 @@ def initialize_weaviate_client() -> openai.Client:
     return weaviate_client
 
 # Define a function to call the endpoint and obtain embeddings
-def vectorize(openai_client, texts: List[str]) -> List[List[float]]:
+def vectorize(openai_client, texts: List[str], rag_mode=False) -> List[List[float]]:
 
-    response = openai_client.embeddings.create(
-        input=texts, model="text-embedding-3-small"
-    )
+    prompt = f"""You are a job posting writer. Your task is to create a compelling and detailed job description for the role of {texts}. The job description should be around 200 words and should cover the following aspects:
 
-    return response.data[0].embedding
+1. A brief introduction to the role and its importance within the organization.
+2. Key responsibilities and duties associated with the role.
+3. Required qualifications, skills, and experience.
+4. Desired personal attributes and qualities.
+5. Information about the company culture, benefits, and growth opportunities.
+
+Please write the job description in a professional and engaging tone, highlighting the exciting challenges and opportunities the role offers. Make sure to use persuasive language that would attract top talent to apply for the position.
+"""
+
+    if rag_mode:
+        response = openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"You are a job posting writer. Your task is to create a compelling and detailed job description for the role of {texts}. The job description should be around 200 words and should cover the following aspects:"},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7,
+        )
+
+        embeddings =  openai.Embedding.create(
+            input=[response], model="text-embedding-3-small"
+        )
+    else:
+        embeddings = openai.Embedding.create(
+            input=texts, model="text-embedding-3-small"
+        )
+
+    return embeddings.data[0].embedding

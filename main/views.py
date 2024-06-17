@@ -15,6 +15,7 @@ from .utils import hnsw_obj,openai_client,listing_df,weaviate_client, vectorize
 from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
 import numpy as np
+from .models import JobPosting  # Import the JobPosting model
 logger = logging.getLogger(__name__)
 
 
@@ -129,7 +130,6 @@ def test_hnsw(request):
     print(f"Result of search = {result}")
 
 
-
 def plot_view(request):
     initial_x_text = 'Machine Learning Engineer'
     initial_y_text = 'Data Scientist'
@@ -150,7 +150,8 @@ def plot_view(request):
         'corr': corr,
     }
 
-    return render(request, "your_template.html", context)
+    return render(request, "base.html", context)
+
 @csrf_exempt
 def get_point_summary(request):
     if request.method == 'POST':

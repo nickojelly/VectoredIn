@@ -127,14 +127,32 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
     x_text, y_text, z_text = text
     x_dist, y_dist, z_dist = distances
 
+    print(dist_ranges)
+
+    x_percentile = 100 * (1-(x_dist - dist_ranges['x_range'][0]) / (dist_ranges['x_range'][1] - dist_ranges['x_range'][0]))
+    y_percentile = 100 * (1-(y_dist - dist_ranges['y_range'][0]) / (dist_ranges['y_range'][1] - dist_ranges['y_range'][0]))
+    z_percentile = 100 * (1-(z_dist - dist_ranges['z_range'][0]) / (dist_ranges['z_range'][1] - dist_ranges['z_range'][0]))
+
+    print(f"{x_percentile=}, {y_percentile=}, {z_percentile=}")
+
     prompt = f"""
     Analyze the job listing asigned to this prompt.
 
     The job listing is measured on three axes: {x_text}, {y_text}, and {z_text}. The cosine distances of the job listing on these axes are as follows:
 
-    - {x_text}: {x_dist:.3f}
-    - {y_text}: {y_dist:.3f}
-    - {z_text}: {z_dist:.3f}
+    - {x_text}: {x_dist:.3f} which is the {x_percentile:.1f}% percentile of all job listings.
+    - {y_text}: {y_dist:.3f} which is the {y_percentile:.1f}% percentile of all job listings.
+    - {z_text}: {z_dist:.3f} which is the {z_percentile:.1f}% percentile of all job listings.
+
+    These are the ranges you should use for your response:
+
+    - [0-20%] Misaligned
+    - [20-40%] Slightly Misaligned
+    - [40-60%] Aligned
+    - [60-80%] Slightly Aligned
+    - [80-100%] Very Aligned
+
+    Always reference these when talking about alignment, very important when talking about the alignment of job listings.
 
     A smaller cosine distance indicates better alignment, while a larger cosine distance indicates worse alignment.
 
@@ -207,7 +225,7 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
 
     return prompt
 
-def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: openai.Client):
+def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: openai):
     print("Starting alignment summary")
     uuid_x, uuid_y, uuid_z = uuid
     text_x, text_y, text_z = text
@@ -228,7 +246,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
 
     plot_summary_prompt = generate_plot_summary_prompt(text, prompts)
 
-    response = openai_client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
