@@ -39,7 +39,7 @@ def get_plot_data(request, x_text, y_text, z_text, update = False):
         'corr': corr
     }
 
-    print(plot_layout)
+    print(f"{response_data=}")
 
     return JsonResponse(response_data)
 

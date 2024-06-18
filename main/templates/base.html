@@ -30,10 +30,6 @@
             margin-top: 2rem;
         }
 
-        /* .form-box {
-            height: 200px;
-        } */
-
         .field .control input {
             width: 300px;
             /* Adjust the width as needed */
@@ -50,6 +46,77 @@
         .input.is-success {
             border-color: #23d160;
         }
+
+        .has-tooltip-right {
+            position: relative;
+            display: inline-block;
+        }
+
+        .has-tooltip-right::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 150%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 1;
+        }
+
+        .has-tooltip-right:hover::before {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip-icon i {
+            font-size: 1rem;
+            /* Adjust the size as needed */
+        }
+
+        .modal-card {
+            width: 80%;
+            max-width: 1000px;
+        }
+
+        .plot-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            /* Add this line to make the container take full width */
+            max-width: 1000px;
+            /* Adjust the value as needed */
+            margin: 0 auto;
+        }
+
+        .correlation-box {
+            width: 150px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .plot-item {
+            margin-bottom: 20px;
+        }
+
+        .tooltip-modal-card {
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .tooltip-modal-card .content p {
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 
@@ -60,6 +127,13 @@
             <div class="box-container">
                 <div class="column is-one-third">
                     <div class="box form-box">
+                        <h3 class="title is-4">
+                            Semantic Axis
+                            <span id="axis-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
+                                data-tooltip="Set the 3 axis for the semantic distance plot">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        </h3>
                         <form method="post" id="plot-form">
                             {% csrf_token %}
                             <div class="field has-addons">
@@ -72,6 +146,7 @@
                                     <input class="input is-primary" type="text" name="x_text"
                                         placeholder="Enter X-axis label" value="{{ initial_x_text }}">
                                 </p>
+
                             </div>
                             <div class="field has-addons">
                                 <p class="control">
@@ -105,22 +180,25 @@
                         </form>
                     </div>
                     <div class="box">
-                        <h2 class="title is-4">Axis Correlations</h2>
+                        <h2 class="title is-4">
+                            Axis Correlations
+                            <span id="correlations-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
+                                data-tooltip="Correlation values between axes">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        </h2>
                         <div class="progress-bars">
                             <div class="progress-bar">
                                 <label id="xy-correlation-label" for="xy-correlation"></label>
-                                <progress id="xy-correlation" class="progress is-primary" value="0" max="2"
-                                    title=""></progress>
+                                <progress id="xy-correlation" class="progress" value="0" max="2" title=""></progress>
                             </div>
                             <div class="progress-bar">
                                 <label id="xz-correlation-label" for="xz-correlation"></label>
-                                <progress id="xz-correlation" class="progress is-info" value="0" max="2"
-                                    title=""></progress>
+                                <progress id="xz-correlation" class="progress" value="0" max="2" title=""></progress>
                             </div>
                             <div class="progress-bar">
                                 <label id="yz-correlation-label" for="yz-correlation"></label>
-                                <progress id="yz-correlation" class="progress is-success" value="0" max="2"
-                                    title=""></progress>
+                                <progress id="yz-correlation" class="progress" value="0" max="2" title=""></progress>
                             </div>
                         </div>
                     </div>
@@ -135,12 +213,15 @@
         <div class="container">
             <div class="box mb-5">
                 <h2 class="title is-4">Plot Summary
+                    <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
+                        data-tooltip="Click to view the plot summary">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
                     <button id="generate-summary-btn" class="button is-primary is-small">Generate</button>
                 </h2>
                 <div class="content">
                     <p id="plot-summary"></p>
                 </div>
-                <!-- <button id="generate-summary-btn" class="button is-primary">Generate Plot Summary</button> -->
             </div>
         </div>
 
@@ -193,9 +274,212 @@
                 </div>
             </div>
         </div>
+        <!-- Tooltip Modal -->
+        <div class="modal" id="tooltip-modal">
+            <div class="modal-background"></div>
+            <div class="modal-card tooltip-modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Axis Information</p>
+                    <button class="delete" aria-label="close" id="close-tooltip-modal"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="content">
+                        <p>Here we can set each of the three axes to explore the relevant job listings. The job listings
+                            are evaluated against the cosine distance to these 3 axes.</p>
+                        <p>You can set the axes to whatever you would like, but keep in mind that this dataset is based
+                            around job listings in Machine Learning and AI.</p>
+                        <p>After clicking the "Update" button, each of the three axes will be embedded using an LLM to
+                            generate a vector. This vector is then used to search the vector database to find relevant
+                            job listings.</p>
+                        <p>For more information, please see the info tab at the top of the app.</p>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                </footer>
+            </div>
+        </div>
+        <!-- Correlations Modal -->
+
+
+
+        <div class="modal" id="correlations-modal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Correlations</p>
+                    <button class="delete" aria-label="close" id="close-correlations-modal"></button>
+                </header>
+                <section class="modal-card-body">
+                    <section class="modal-card-body">
+                        <p>The axis correlations represent the degree of linear relationship between the different axes.
+                            A
+                            correlation value of 1 indicates a perfect positive correlation, -1 indicates a perfect
+                            negative
+                            correlation, and 0 indicates no correlation.</p>
+
+                        <p>Let's have a look at two correlations from the initial plot, "Machine Learning Engineer vs
+                            Data Science" and "Machine Learning Engineer vs Accountant"</p>
+                        <!-- Add your correlations information content here -->
+                    </section>
+                    <div class="plot-container">
+                        <div class="plot-item">
+                            <div class="columns is-vcentered">
+                                <div class="column is-four-fifths">
+                                    {% include 'ml_vs_data_scientist.html' %}
+                                </div>
+                                <div class="column">
+                                    <div class="box correlation-box">
+                                        <p class="title is-6">Correlation</p>
+                                        <p class="subtitle is-6">0.81</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>This 2-axis plot of the cosine distance of the job listing against "Machine Learning
+                                Engineer" and "Data Scientist"
+                                clearly shows there is a positive correlation between the two terms. In relevance to
+                                what we are measuring here,
+                                that means that as a Job Listing becomes closer to a "Machine Learning Engineer" it also
+                                becomes closer to a "Data Scientist".
+
+                                This makes intuitive sense as they are very closely related roles, with some minor
+                                differences.</p>
+                        </div>
+                        <div class="plot-item">
+                            <div class="columns is-vcentered">
+                                <div class="column is-four-fifths">
+                                    {% include 'ml_vs_accountant.html' %}
+                                </div>
+                                <div class="column">
+                                    <div class="box correlation-box">
+                                        <p class="title is-6">Correlation</p>
+                                        <p class="subtitle is-6">-0.21</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p>In contrast to the plot above, we can see that there is no real significant correlation
+                                between the roles of a "ML Engineer" and an "Accountant".
+
+                                This again makes intuitive sense, as these roles are a lot less related than those
+                                above.</p>
+                        </div>
+                    </div>
+                    <p>This information is represented easily in the correlation bars on the main page</p>
+                </section>
+
+                <footer class="modal-card-foot">
+                </footer>
+            </div>
+        </div>
+
+        <div class="modal" id="plot-summary-modal">
+            <div class="modal-background"></div>
+            <div class="modal-card plot-summary-modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Plot Summary</p>
+                    <button class="delete" aria-label="close" id="close-plot-summary-modal"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="content">
+                        <p id="plot-summary-text">Here is where we can generate a meta-analysis of the three separate
+                            axes using Weaviate's built-in generative search.</p>
+                        <p>This search will happen in two stages. In the first stage, we select the job that is the
+                            closest on each axis, and we use that vector to perform a "near vector generative search"
+                            using a prompt that we have given it to summarize the information.</p>
+                        <p>Here is an excerpt of the prompt and the call to Weaviate:</p>
+                        <pre><code>prompt = """... Please provide a concise summary that highlights the key aspects of these job listings
+        that contribute to their alignment with the "{text}" axis. Consider the following points in your summary:
+        1. What are the common themes, skills, or requirements mentioned across these job listings?
+        2. How do these job listings relate to the concept of "{text}"?..."""
+
+        single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=3, grouped_task=prompt)</code></pre>
+                        <p>What we receive out of Weaviate will be 3 summaries on job listings that closely relate to
+                            the specified axis.</p>
+                        <div class="job-summary">
+                            <article class="message is-primary">
+                                <div class="message-header">
+                                    <p><strong>Machine Learning Engineer</strong></p>
+                                </div>
+                                <div class="message-body">
+                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these job listings aligned with the "Machine Learning Engineer" axis include a focus on developing AI models, natural language understanding (NLU), natural language processing (NLP), and machine learning (ML) algorithms. The job listings require experience in Python, cloud platforms ...
+                                            </span></em></p>
+                                </div>
+                            </article>
+                            <div class="columns">
+                                <div class="column">
+                                    <article class="message is-info">
+                                        <div class="message-header">
+                                            <p><strong>Data Scientist</strong></p>
+                                        </div>
+                                        <div class="message-body" style="display: none;">
+                                            <p><em>[Describe the alignment of the job listing with the {y_text} axis.
+                                                    Include reasons for alignment or misalignment, even if it doesn't
+                                                    align well.]</em></p>
+                                        </div>
+                                    </article>
+                                </div>
+                                <div class="column">
+                                    <article class="message is-success">
+                                        <div class="message-header">
+                                            <p><strong>Accountant</strong></p>
+                                        </div>
+                                        <div class="message-body" style="display: none;">
+                                            <p><em>[Describe the alignment of the job listing with the {z_text} axis.
+                                                    Include reasons for alignment or misalignment, even if it doesn't
+                                                    align well.]</em></p>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                            <p>These three summaries are then put into a meta-analysis prompt that is formatted like
+                                this:</p>
+                            <div class="box">
+                                <p>Based on the summaries of the top 3 job listings for each axis, provide an overview
+                                    of the similarities and differences between the axes:</p>
+                                <div class="columns">
+                                    <div class="column">
+                                        <button class="button is-primary is-fullwidth">Summary 1</button>
+                                    </div>
+                                    <div class="column">
+                                        <button class="button is-info is-fullwidth">Summary 2</button>
+                                    </div>
+                                    <div class="column">
+                                        <button class="button is-success is-fullwidth">Summary 3</button>
+                                    </div>
+                                </div>
+                                <div class="content" style="margin-top: 1rem;">
+                                    <article class="message">
+                                        <div class="message-body">
+                                            <p><em>Provide you answer in this specific format: ...</em></p>
+                                        </div>
+                                    </article>
+                                </div>
+                            </div>
+                            <p>This output of this last prompt is displayed below and should give an insight into the similarities and differences between the axis</p>
+                        </div>
+                </section>
+                <footer class="modal-card-foot">
+                </footer>
+            </div>
+        </div>
 
     </section>
     <script>
+
+
+        function getCorrelationColor(correlation) {
+            if (correlation <= 0.3) {
+                return 'is-danger';
+            } else if (correlation <= 0.7) {
+                return 'is-warning';
+            } else if (correlation <= 1.3) {
+                return 'is-dark'; // Use 'is-light' class for no correlation
+            } else if (correlation <= 1.7) {
+                return 'is-info';
+            } else {
+                return 'is-success';
+            }
+        }
+
         // Function to update the progress bar labels and values
         function updateProgressBars() {
             var plot = document.getElementById('plot-container');
@@ -220,7 +504,6 @@
         }
 
         var pointData = null;
-
         function updateCorrelationBars(correlations) {
             var plot = document.getElementById('plot-container');
             var xAxisLabel = plot.layout.scene.xaxis.title.text;
@@ -231,16 +514,25 @@
             document.getElementById('xz-correlation-label').textContent = xAxisLabel + ' - ' + zAxisLabel;
             document.getElementById('yz-correlation-label').textContent = yAxisLabel + ' - ' + zAxisLabel;
 
-            document.getElementById('xy-correlation').value = correlations[0];
-            document.getElementById('xz-correlation').value = correlations[1];
-            document.getElementById('yz-correlation').value = correlations[2];
+            var xyCorrelation = correlations[0];
+            var xzCorrelation = correlations[1];
+            var yzCorrelation = correlations[2];
 
-            // Update the title attribute with the correlation value
-            document.getElementById('xy-correlation').title = (correlations[0] - 1).toFixed(2);
-            document.getElementById('xz-correlation').title = (correlations[1] - 1).toFixed(2);
-            document.getElementById('yz-correlation').title = (correlations[2] - 1).toFixed(2);
+            var xyCorrelationBar = document.getElementById('xy-correlation');
+            var xzCorrelationBar = document.getElementById('xz-correlation');
+            var yzCorrelationBar = document.getElementById('yz-correlation');
+
+            updateProgressBar(xyCorrelationBar, xyCorrelation);
+            updateProgressBar(xzCorrelationBar, xzCorrelation);
+            updateProgressBar(yzCorrelationBar, yzCorrelation);
         }
 
+        function updateProgressBar(progressBar, correlation) {
+            progressBar.value = correlation;
+            progressBar.classList.remove('is-danger', 'is-warning', 'is-info', 'is-success');
+            progressBar.classList.add(getCorrelationColor(correlation));
+            progressBar.title = (correlation - 1).toFixed(2);
+        }
         // Fetch initial plot data from Django
         fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
             .then(response => response.json())
@@ -289,6 +581,8 @@
                                 document.getElementById('y-progress').value = xMax - data.summary.y;
                                 document.getElementById('z-progress').value = xMax - data.summary.z;
 
+
+
                                 // Collapse the job description by default
                                 var collapsible = document.querySelector('.is-collapsible');
                                 collapsible.classList.remove('is-active');
@@ -323,6 +617,12 @@
             var yText = formData.get('y_text');
             var zText = formData.get('z_text');
 
+            // Validation check
+            if (!xText || !yText || !zText) {
+                alert('Please fill in all the axis fields.');
+                return;
+            }
+
             // Add the 'is-loading' class to the button
             document.getElementById('update-button').classList.add('is-loading');
 
@@ -347,12 +647,19 @@
                     document.getElementById('xz-correlation-label').textContent = xText + ' - ' + zText;
                     document.getElementById('yz-correlation-label').textContent = yText + ' - ' + zText;
 
+                    document.getElementById('x-axis-label').textContent = xText;
+                    document.getElementById('y-axis-label').textContent = yText;
+                    document.getElementById('z-axis-label').textContent = zText;
+
+
+
                     // Remove the 'is-loading' class from the button
                     document.getElementById('update-button').classList.remove('is-loading');
+                    updateCorrelationBars(data.corr);
                 })
                 .catch(error => console.error('Error:', error));
 
-                updateCorrelationBars();
+
         });
 
         document.getElementById('generate-summary-btn').addEventListener('click', function () {
@@ -438,6 +745,68 @@
             }
         }
 
+        var tooltipModal = document.getElementById('tooltip-modal');
+        var axisTooltipIcon = document.getElementById('axis-tooltip-icon');
+        var closeTooltipModalBtn = document.getElementById('close-tooltip-modal');
+
+        var correlationsModal = document.getElementById('correlations-modal');
+        var correlationsTooltipIcon = document.getElementById('correlations-tooltip-icon');
+        var closeCorrelationsModalBtn = document.getElementById('close-correlations-modal');
+
+        var plotSummaryModal = document.getElementById('plot-summary-modal');
+        var plotSummaryIcon = document.getElementById('plot-summary-icon');
+        var closePlotSummaryModalBtn = document.getElementById('close-plot-summary-modal');
+
+        // Open the tooltip modal when the axis tooltip icon is clicked
+        if (axisTooltipIcon) {
+            axisTooltipIcon.addEventListener('click', function () {
+                tooltipModal.classList.add('is-active');
+            });
+        } else {
+            console.log('axisTooltipIcon element not found');
+        }
+
+        // Open the correlations modal when the correlations tooltip icon is clicked
+        if (correlationsTooltipIcon) {
+            correlationsTooltipIcon.addEventListener('click', function () {
+                correlationsModal.classList.add('is-active');
+            });
+        } else {
+            console.log('correlationsTooltipIcon element not found');
+        }
+
+        // Open the plot summary modal when the plot summary icon is clicked
+        if (plotSummaryIcon) {
+            plotSummaryIcon.addEventListener('click', function () {
+                plotSummaryModal.classList.add('is-active');
+            });
+        } else {
+            console.log('plotSummaryIcon element not found');
+        }
+
+        // Plot Summary Modal
+        document.getElementById('close-plot-summary-modal').addEventListener('click', function () {
+            document.getElementById('plot-summary-modal').classList.remove('is-active');
+        });
+
+        // Tooltip Modal
+        document.getElementById('close-tooltip-modal').addEventListener('click', function () {
+            document.getElementById('tooltip-modal').classList.remove('is-active');
+        });
+
+        // Correlations Modal
+        document.getElementById('close-correlations-modal').addEventListener('click', function () {
+            document.getElementById('correlations-modal').classList.remove('is-active');
+        });
+
+        document.querySelectorAll('.modal-background').forEach(function (background) {
+            background.addEventListener('click', function () {
+                tooltipModal.classList.remove('is-active');
+                correlationsModal.classList.remove('is-active');
+                plotSummaryModal.remove('is-active');
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             var collapsibles = document.querySelectorAll('.is-collapsible');
             collapsibles.forEach(function (collapsible) {
@@ -452,6 +821,7 @@
                 });
             });
         });
+
     </script>
 </body>
 

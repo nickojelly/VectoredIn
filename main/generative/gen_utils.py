@@ -6,7 +6,8 @@ import openai
 def generate_axis_summary_prompt(text):
     prompt = f"""These job listings are the top 3 most aligned with the "{text}" axis based on their cosine distances.
 
-Please provide a concise summary that highlights the key aspects of these job listings that contribute to their alignment with the "{text}" axis. Consider the following points in your summary:
+Please provide a concise summary that highlights the key aspects of these job listings 
+that contribute to their alignment with the "{text}" axis. Consider the following points in your summary:
 
 1. What are the common themes, skills, or requirements mentioned across these job listings?
 2. How do these job listings relate to the concept of "{text}"?
