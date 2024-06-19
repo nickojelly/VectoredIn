@@ -226,7 +226,7 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
 
     return prompt
 
-def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: openai):
+def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: openai.OpenAI):
     print("Starting alignment summary")
     uuid_x, uuid_y, uuid_z = uuid
     text_x, text_y, text_z = text
@@ -247,7 +247,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
 
     plot_summary_prompt = generate_plot_summary_prompt(text, prompts)
 
-    response = openai.ChatCompletion.create(
+    response = openai_client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},

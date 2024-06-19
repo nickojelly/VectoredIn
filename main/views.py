@@ -125,15 +125,39 @@ def generate_plot(x_text, y_text, z_text, update=False):
     layout = dict(
         scene=dict(
             aspectmode='cube',
-            xaxis=dict(range=[global_min, global_max],title=x_text),
-            yaxis=dict(range=[global_min, global_max],title=y_text),
-            zaxis=dict(range=[global_min, global_max],title=z_text),
+            xaxis=dict(
+                range=[global_min, global_max],
+                title=x_text,
+                backgroundcolor="rgb(200, 230, 225)",  # Muted color for x-axis
+                gridcolor="white",
+                showbackground=True,
+                zerolinecolor="white",
+            ),
+            yaxis=dict(
+                range=[global_min, global_max],
+                title=y_text,
+                backgroundcolor="rgb(220, 230, 240)",  # Muted color for y-axis
+                gridcolor="white",
+                showbackground=True,
+                zerolinecolor="white",
+            ),
+            zaxis=dict(
+                range=[global_min, global_max],
+                title=z_text,
+                backgroundcolor="rgb(230, 240, 220)",  # Muted color for z-axis
+                gridcolor="white",
+                showbackground=True,
+                zerolinecolor="white",
+            ),
         ),
         hovermode='closest',
         width=800,  # Adjust the width as needed
         height=600,  # Adjust the height as needed
-        
+        margin=dict(r=10, l=10, b=10, t=10),
     )
+
+
+    
 
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
 

@@ -176,47 +176,36 @@
                         </h3>
                         <form method="post" id="plot-form">
                             {% csrf_token %}
-                            <div class="field has-addons">
-                                <p class="control">
-                                    <a class="button is-static is-primary">
-                                        X
-                                    </a>
-                                </p>
-                                <p class="control">
-                                    <input class="input is-primary" type="text" name="x_text"
-                                        placeholder="Enter X-axis label" value="{{ initial_x_text }}">
-                                </p>
-
-                            </div>
-                            <div class="field has-addons">
-                                <p class="control">
-                                    <a class="button is-static is-info">
-                                        Y
-                                    </a>
-                                </p>
-                                <p class="control">
-                                    <input class="input is-info" type="text" name="y_text"
-                                        placeholder="Enter Y-axis label" value="{{ initial_y_text }}">
-                                </p>
-                            </div>
-                            <div class="field has-addons">
-                                <p class="control">
-                                    <a class="button is-static is-success">
-                                        Z
-                                    </a>
-                                </p>
-                                <p class="control">
-                                    <input class="input is-success" type="text" name="z_text"
-                                        placeholder="Enter Z-axis label" value="{{ initial_z_text }}">
-                                </p>
-                            </div>
-                            <div class="field">
-                                <div class="control">
-                                    <button type="submit" class="button is-primary" id="update-button">
-                                        Update Plot
-                                    </button>
-                                </div>
-                            </div>
+<div class="field has-addons">
+    <p class="control">
+        <a class="button is-primary">
+            X
+        </a>
+    </p>
+    <p class="control is-expanded">
+        <input class="input" type="text" name="x_text" placeholder="Enter X-axis label" value="{{ initial_x_text }}">
+    </p>
+</div>
+<div class="field has-addons">
+    <p class="control">
+        <a class="button is-info">
+            Y
+        </a>
+    </p>
+    <p class="control is-expanded">
+        <input class="input" type="text" name="y_text" placeholder="Enter Y-axis label" value="{{ initial_y_text }}">
+    </p>
+</div>
+<div class="field has-addons">
+    <p class="control">
+        <a class="button is-success">
+            Z
+        </a>
+    </p>
+    <p class="control is-expanded">
+        <input class="input" type="text" name="z_text" placeholder="Enter Z-axis label" value="{{ initial_z_text }}">
+    </p>
+</div>
                         </form>
                     </div>
                     <div class="box">
