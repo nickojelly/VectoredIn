@@ -2,6 +2,7 @@ import weaviate
 from pprint import pprint
 
 import openai
+from ..models import JobPosting, QueryEmbedding  # Import the JobPosting model
 
 def generate_axis_summary_prompt(text):
     prompt = f"""These job listings are the top 3 most aligned with the "{text}" axis based on their cosine distances.

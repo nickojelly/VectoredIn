@@ -30,10 +30,10 @@
             margin-top: 2rem;
         }
 
-        .field .control input {
+        /* .field .control input {
             width: 300px;
-            /* Adjust the width as needed */
-        }
+            /* Adjust the width as needed 
+        } */
 
         .input.is-primary {
             border-color: #00d1b2;
@@ -124,7 +124,7 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <a class="navbar-item" href="/">
-                <img src="{% static 'logo.png' %}" alt="Logo" width="112" height="28">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" width="112" height="28">
             </a>
 
             <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
@@ -134,7 +134,7 @@
             </a>
         </div>
 
-        
+
 
         <div id="navbarMenu" class="navbar-menu">
             <div class="navbar-start">
@@ -143,18 +143,6 @@
                 <a class="navbar-item" href="/contact">Contact</a>
             </div>
 
-            <div class="navbar-end">
-                <div class="navbar-item">
-                    <div class="buttons">
-                        <a class="button is-primary" href="/signup">
-                            <strong>Sign up</strong>
-                        </a>
-                        <a class="button is-light" href="/login">
-                            Log in
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </nav>
 
@@ -176,36 +164,79 @@
                         </h3>
                         <form method="post" id="plot-form">
                             {% csrf_token %}
-<div class="field has-addons">
-    <p class="control">
-        <a class="button is-primary">
-            X
-        </a>
-    </p>
-    <p class="control is-expanded">
-        <input class="input" type="text" name="x_text" placeholder="Enter X-axis label" value="{{ initial_x_text }}">
-    </p>
-</div>
-<div class="field has-addons">
-    <p class="control">
-        <a class="button is-info">
-            Y
-        </a>
-    </p>
-    <p class="control is-expanded">
-        <input class="input" type="text" name="y_text" placeholder="Enter Y-axis label" value="{{ initial_y_text }}">
-    </p>
-</div>
-<div class="field has-addons">
-    <p class="control">
-        <a class="button is-success">
-            Z
-        </a>
-    </p>
-    <p class="control is-expanded">
-        <input class="input" type="text" name="z_text" placeholder="Enter Z-axis label" value="{{ initial_z_text }}">
-    </p>
-</div>
+                            <div class="field has-addons">
+                                <p class="control">
+                                    <a class="button is-primary">
+                                        X
+                                    </a>
+                                </p>
+                                <p class="control is-expanded">
+                                    <input class="input" type="text" name="x_text" placeholder="Enter X-axis label"
+                                        value="{{ initial_x_text }}">
+                                </p>
+                            </div>
+                            <div class="field has-addons">
+                                <p class="control">
+                                    <a class="button is-info">
+                                        Y
+                                    </a>
+                                </p>
+                                <p class="control is-expanded">
+                                    <input class="input" type="text" name="y_text" placeholder="Enter Y-axis label"
+                                        value="{{ initial_y_text }}">
+                                </p>
+                            </div>
+                            <div class="field has-addons">
+                                <p class="control">
+                                    <a class="button is-success">
+                                        Z
+                                    </a>
+                                </p>
+                                <p class="control is-expanded">
+                                    <input class="input" type="text" name="z_text" placeholder="Enter Z-axis label"
+                                        value="{{ initial_z_text }}">
+                                </p>
+                            </div>
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field has-addons">
+                                        <p class="control">
+                                            <a class="button">
+                                                K
+                                            </a>
+                                        </p>
+                                        <p class="control">
+                                            <input class="input " type="number" name="k_value" placeholder="10"
+                                                value="10" min="1" max="30" step="1">
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field has-addons">
+                                        <p class="control">
+                                            <a class="button">
+                                                N
+                                            </a>
+                                        </p>
+                                        <p class="control">
+                                            <input class="input " type="number" name="n_value" placeholder="5" value="5"
+                                                min="3" max="9" step="1">
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field is-grouped">
+                                <div class="control">
+                                    <button type="submit" class="button is-primary" id="update-button">
+                                        Update Plot
+                                    </button>
+                                </div>
+                                <div class="control">
+                                    <button type="button" class="button is-info" id="update-rag-button">
+                                        Update with RAG
+                                    </button>
+                                </div>
+                            </div>
                         </form>
                     </div>
                     <div class="box">
@@ -313,14 +344,17 @@
                 </header>
                 <section class="modal-card-body">
                     <div class="content">
-                        <p>Here we can set each of the three axes to explore the relevant job listings. The job listings
+                        <p class="bm4">Here we can set each of the three axes to explore the relevant job listings. The
+                            job listings
                             are evaluated against the cosine distance to these 3 axes.</p>
-                        <p>You can set the axes to whatever you would like, but keep in mind that this dataset is based
+                        <p class="bm4">You can set the axes to whatever you would like, but keep in mind that this
+                            dataset is based
                             around job listings in Machine Learning and AI.</p>
-                        <p>After clicking the "Update" button, each of the three axes will be embedded using an LLM to
+                        <p class="bm4">After clicking the "Update" button, each of the three axes will be embedded using
+                            an LLM to
                             generate a vector. This vector is then used to search the vector database to find relevant
                             job listings.</p>
-                        <p>For more information, please see the info tab at the top of the app.</p>
+                        <p class="bm4">For more information, please see the info tab at the top of the app.</p>
                     </div>
                 </section>
                 <footer class="modal-card-foot">
@@ -429,7 +463,11 @@
                                     <p><strong>Machine Learning Engineer</strong></p>
                                 </div>
                                 <div class="message-body">
-                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these job listings aligned with the "Machine Learning Engineer" axis include a focus on developing AI models, natural language understanding (NLU), natural language processing (NLP), and machine learning (ML) algorithms. The job listings require experience in Python, cloud platforms ...
+                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these
+                                                job listings aligned with the "Machine Learning Engineer" axis include a
+                                                focus on developing AI models, natural language understanding (NLU),
+                                                natural language processing (NLP), and machine learning (ML) algorithms.
+                                                The job listings require experience in Python, cloud platforms ...
                                             </span></em></p>
                                 </div>
                             </article>
@@ -483,7 +521,8 @@
                                     </article>
                                 </div>
                             </div>
-                            <p>This output of this last prompt is displayed below and should give an insight into the similarities and differences between the axis</p>
+                            <p>This output of this last prompt is displayed below and should give an insight into the
+                                similarities and differences between the axis</p>
                         </div>
                 </section>
                 <footer class="modal-card-foot">
@@ -505,6 +544,7 @@
     </section>
     <script>
 
+        var rag = 'false';
 
         function getCorrelationColor(correlation) {
             if (correlation <= 0.3) {
@@ -585,8 +625,6 @@
                 updateProgressBars();
                 updateCorrelationBars(data.corr);
 
-                // console.log(response)
-
                 // Attach event listeners after the plot is initialized
                 var plot = document.getElementById('plot-container');
                 var xMax = plot.layout.scene.xaxis.range[1];
@@ -648,14 +686,13 @@
                 });
             });
 
-        // Update the plot when the form is submitted
-        document.getElementById('plot-form').addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            var formData = new FormData(event.target);
+        function updatePlot(rag = false) {
+            var formData = new FormData(document.getElementById('plot-form'));
             var xText = formData.get('x_text');
             var yText = formData.get('y_text');
             var zText = formData.get('z_text');
+            var kValue = formData.get('k_value');
+            var nValue = formData.get('n_value');
 
             // Validation check
             if (!xText || !yText || !zText) {
@@ -666,7 +703,12 @@
             // Add the 'is-loading' class to the button
             document.getElementById('update-button').classList.add('is-loading');
 
-            fetch(`/update_plot_data/${xText}/${yText}/${zText}/`, {
+            var url = `/update_plot_data/${xText}/${yText}/${zText}/${kValue}/${nValue}/`;
+            if (rag) {
+                url += '?rag=true';
+            }
+
+            fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
@@ -678,7 +720,7 @@
                     // Update the plot with the new data and axis labels
                     Plotly.react('plot-container', JSON.parse(data.data), data.layout);
 
-                    // Update the correlation values in the progress bars
+                    // Update the correlation values and labels
                     document.getElementById('xy-correlation').value = data.corr[0];
                     document.getElementById('xz-correlation').value = data.corr[1];
                     document.getElementById('yz-correlation').value = data.corr[2];
@@ -691,19 +733,27 @@
                     document.getElementById('y-axis-label').textContent = yText;
                     document.getElementById('z-axis-label').textContent = zText;
 
-
-
                     // Remove the 'is-loading' class from the button
                     document.getElementById('update-button').classList.remove('is-loading');
                     updateCorrelationBars(data.corr);
                 })
                 .catch(error => console.error('Error:', error));
+        }
 
+        document.getElementById('plot-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            updatePlot();
+        });
 
+        document.getElementById('update-rag-button').addEventListener('click', function () {
+            rag = 'true';
+            updatePlot(true);
         });
 
         document.getElementById('generate-summary-btn').addEventListener('click', function () {
             var button = this;
+            rag = 'false'
+            
             button.classList.add('is-loading');
 
             generatePlotSummary(button);
@@ -843,7 +893,7 @@
             background.addEventListener('click', function () {
                 tooltipModal.classList.remove('is-active');
                 correlationsModal.classList.remove('is-active');
-                plotSummaryModal.remove('is-active');
+                plotSummaryModal.classList.remove('is-active');
             });
         });
 

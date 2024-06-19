@@ -83,32 +83,19 @@ def initialize_weaviate_client() :
     return weaviate_client
 
 # Define a function to call the endpoint and obtain embeddings
-def vectorize(openai_client, texts: List[str], rag_mode=False) -> List[List[float]]:
+def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts: List[str], rag=False) -> List[List[float]]:
 
-    prompt = f"""You are a job posting writer. Your task is to create a compelling and detailed job description for the role of {texts}. The job description should be around 200 words and should cover the following aspects:
+    generate_prompt = "List out the similarities in qualifications, experience and skills between the attached job listings."
+    if rag:
 
-1. A brief introduction to the role and its importance within the organization.
-2. Key responsibilities and duties associated with the role.
-3. Required qualifications, skills, and experience.
-4. Desired personal attributes and qualities.
-5. Information about the company culture, benefits, and growth opportunities.
+        listings =  weaviate_client.collections.get("JobListings")
+        response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5)
 
-Please write the job description in a professional and engaging tone, highlighting the exciting challenges and opportunities the role offers. Make sure to use persuasive language that would attract top talent to apply for the position.
-"""
-
-    if rag_mode:
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": f"You are a job posting writer. Your task is to create a compelling and detailed job description for the role of {texts}. The job description should be around 200 words and should cover the following aspects:"},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.7,
-        )
+        print(response)
+        
 
         embeddings =  openai_client.embeddings.create(
-            input=[response], model="text-embedding-3-small"
+            input=[response.generated], model="text-embedding-3-small"
         )
     else:
         embeddings = openai_client.embeddings.create(

@@ -27,19 +27,19 @@ def contact(request):
 def homepage(request):
     return HttpResponse('Hello, World!')
 
-def update_plot_data(request, x_text, y_text, z_text):
-    return get_plot_data(request, x_text, y_text, z_text, update = True)
+def update_plot_data(request, x_text, y_text, z_text,k,n):
+    rag = request.GET.get('rag', 'false') == 'true'
+    return get_plot_data(request, x_text, y_text, z_text, k,n,update = True,rag=rag)
 
-def get_plot_data(request, x_text, y_text, z_text, update = False):
-    plot_div, plot_data, plot_layout, corr = generate_plot(x_text, y_text, z_text,update = update)
+def get_plot_data(request, x_text, y_text, z_text,k=10,n=5, update = False,rag=False):
+
+    plot_div, plot_data, plot_layout, corr = generate_plot(x_text, y_text, z_text,k,n, update = update,rag=rag)
 
     # Convert plot_data to a JSON-serializable format
     plot_data_json = json.dumps(plot_data, cls=PlotlyJSONEncoder)
 
-    test_hnsw(request)
-
     response_data = {
-        'data': plot_data_json,
+        'data': plot_data_json, 
         'layout': plot_layout,
         'corr': corr
     }
@@ -47,29 +47,38 @@ def get_plot_data(request, x_text, y_text, z_text, update = False):
     return JsonResponse(response_data)
 
 
-def vectorize_query_db(text):
-    #Check's if query already has been vectorized in local database
+def vectorize_query_db(text, rag=False):
+    # Check if the query already has been vectorized in the local database
     query_embedding = QueryEmbedding.objects.filter(query=text).first()
 
     if not query_embedding:
-        vector = vectorize(openai_client, text)
-        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector))  # Remove tolist()
+        # If the query embedding doesn't exist, create a new one
+        vector = vectorize(openai_client,weaviate_client, text)
+        vector_rag = vectorize(openai_client,weaviate_client, text, rag=True) if rag else None
+        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector), rag_query_embedding=json.dumps(vector_rag) if rag else None)
         query_embedding.save()
     else:
-        print(f"query_embedding exists, query: {text}, vector: {query_embedding.query_embedding}")
+        # If the query embedding exists, retrieve the vectors
         vector = np.array(json.loads(query_embedding.query_embedding))
+        if rag:
+            if not query_embedding.rag_query_embedding:
+                vector_rag = vectorize(openai_client,weaviate_client, text, rag=True)
+                query_embedding.rag_query_embedding = json.dumps(vector_rag)
+                query_embedding.save()
+            vector = np.array(json.loads(query_embedding.rag_query_embedding))
+
     return vector
 
-def update_data(x_text, y_text, z_text, k=10):
+def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
 
-    x_vector  = vectorize_query_db(x_text)
-    y_vector  = vectorize_query_db(y_text)
-    z_vector  = vectorize_query_db(z_text)
+    x_vector  = vectorize_query_db(x_text,rag)
+    y_vector  = vectorize_query_db(y_text,rag)
+    z_vector  = vectorize_query_db(z_text,rag)
 
     # Rest of the code remains the same
-    x_list = hnsw_obj.serach_along_axis(x_vector, k)
-    y_list = hnsw_obj.serach_along_axis(y_vector, k)
-    z_list = hnsw_obj.serach_along_axis(z_vector, k)
+    x_list = hnsw_obj.serach_along_axis(x_vector, k,n=n)
+    y_list = hnsw_obj.serach_along_axis(y_vector, k,n=n)
+    z_list = hnsw_obj.serach_along_axis(z_vector, k,n=n)
     full_list = x_list | y_list | z_list
 
     distance_list = []
@@ -84,11 +93,11 @@ def update_data(x_text, y_text, z_text, k=10):
 
     return distance_df
 
-def generate_plot(x_text, y_text, z_text, update=False):
+def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
     # QueryEmbedding.objects.all().delete()
     #Process the data:
     if update:
-        distance_df = update_data(x_text, y_text, z_text)
+        distance_df = update_data(x_text, y_text, z_text,k,n,rag)
     else: 
         distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
         distance_df = pd.read_feather(distance_df_path)
