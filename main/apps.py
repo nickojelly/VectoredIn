@@ -6,6 +6,7 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
+        from .models import QueryEmbedding
         # Call the initialization function from utils
         hnsw_intialize()
         initialize_openai_client()

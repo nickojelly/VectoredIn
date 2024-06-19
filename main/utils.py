@@ -43,8 +43,10 @@ def initialize_openai_client():
     # openai_client = openai.Client(api_key=openai_api_key)
 
     openai.api_key = openai_api_key
+    openai_client = openai.OpenAI(api_key=openai_api_key)
 
-    return openai
+    # return openai
+
 listing_df: pd.DataFrame = None
 embedding_df: pd.DataFrame = None
 query_df: pd.DataFrame = None
@@ -105,12 +107,13 @@ Please write the job description in a professional and engaging tone, highlighti
             temperature=0.7,
         )
 
-        embeddings =  openai.Embedding.create(
+        embeddings =  openai_client.embeddings.create(
             input=[response], model="text-embedding-3-small"
         )
     else:
-        embeddings = openai.Embedding.create(
+        embeddings = openai_client.embeddings.create(
             input=texts, model="text-embedding-3-small"
         )
+        
 
     return embeddings.data[0].embedding

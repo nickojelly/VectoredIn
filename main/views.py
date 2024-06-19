@@ -15,7 +15,7 @@ from .utils import hnsw_obj,openai_client,listing_df,weaviate_client, vectorize
 from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
 import numpy as np
-from .models import JobPosting  # Import the JobPosting model
+from .models import JobPosting, QueryEmbedding  # Import the JobPosting model
 logger = logging.getLogger(__name__)
 
 def about(request):
@@ -44,26 +44,35 @@ def get_plot_data(request, x_text, y_text, z_text, update = False):
         'corr': corr
     }
 
-    print(f"{response_data=}")
-
     return JsonResponse(response_data)
 
 
-def update_data(x_text, y_text, z_text):
-    #Process the data:
-    # pass
-    x_vector = vectorize(openai_client,x_text)
-    y_vector = vectorize(openai_client,y_text)
-    z_vector = vectorize(openai_client,z_text)
+def vectorize_query_db(text):
+    #Check's if query already has been vectorized in local database
+    query_embedding = QueryEmbedding.objects.filter(query=text).first()
 
+    if not query_embedding:
+        x_vector = vectorize(openai_client, text)
+        x_query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(x_vector))  # Remove tolist()
+        x_query_embedding.save()
+    else:
+        print(f"query_embedding exists, query: {text}, vector: {query_embedding.query_embedding}")
+        x_vector = np.array(json.loads(query_embedding.query_embedding))
+
+def update_data(x_text, y_text, z_text):
+
+    x_vector  = vectorize_query_db(x_text)
+    y_vector  = vectorize_query_db(y_text)
+    z_vector  = vectorize_query_db(z_text)
+
+    # Rest of the code remains the same
     x_list = hnsw_obj.serach_along_axis(x_vector, 10)
     y_list = hnsw_obj.serach_along_axis(y_vector, 10)
     z_list = hnsw_obj.serach_along_axis(z_vector, 10)
-    full_list = x_list|y_list|z_list
+    full_list = x_list | y_list | z_list
 
     distance_list = []
-    for uuid,array in full_list.items():
-        print(uuid, array)
+    for uuid, array in full_list.items():
         x_dist = hnsw_obj.distance(x_vector, array)
         y_dist = hnsw_obj.distance(y_vector, array)
         z_dist = hnsw_obj.distance(z_vector, array)
@@ -72,10 +81,10 @@ def update_data(x_text, y_text, z_text):
     distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
     distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
 
-    # distance_df.to_feather(os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth'))
     return distance_df
 
 def generate_plot(x_text, y_text, z_text, update=False):
+    # QueryEmbedding.objects.all().delete()
     #Process the data:
     if update:
         distance_df = update_data(x_text, y_text, z_text)
@@ -132,7 +141,7 @@ def generate_plot(x_text, y_text, z_text, update=False):
 
 def test_hnsw(request):
     result = hnsw_obj.serach_along_axis(q=hnsw_obj.data[0],k=5)
-    print(f"Result of search = {result}")
+    # print(f"Result of search = {result}")
 
 
 def plot_view(request):
@@ -209,7 +218,7 @@ def generate_plot_summary(request):
 
 
         # job_listing = distance_df.query('wv_uuid == @uuid')
-        print(f"{uuids=}")
+        # print(f"{uuids=}")
 
 
         text = (x_text, y_text, z_text)
