@@ -52,23 +52,24 @@ def vectorize_query_db(text):
     query_embedding = QueryEmbedding.objects.filter(query=text).first()
 
     if not query_embedding:
-        x_vector = vectorize(openai_client, text)
-        x_query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(x_vector))  # Remove tolist()
-        x_query_embedding.save()
+        vector = vectorize(openai_client, text)
+        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector))  # Remove tolist()
+        query_embedding.save()
     else:
         print(f"query_embedding exists, query: {text}, vector: {query_embedding.query_embedding}")
-        x_vector = np.array(json.loads(query_embedding.query_embedding))
+        vector = np.array(json.loads(query_embedding.query_embedding))
+    return vector
 
-def update_data(x_text, y_text, z_text):
+def update_data(x_text, y_text, z_text, k=10):
 
     x_vector  = vectorize_query_db(x_text)
     y_vector  = vectorize_query_db(y_text)
     z_vector  = vectorize_query_db(z_text)
 
     # Rest of the code remains the same
-    x_list = hnsw_obj.serach_along_axis(x_vector, 10)
-    y_list = hnsw_obj.serach_along_axis(y_vector, 10)
-    z_list = hnsw_obj.serach_along_axis(z_vector, 10)
+    x_list = hnsw_obj.serach_along_axis(x_vector, k)
+    y_list = hnsw_obj.serach_along_axis(y_vector, k)
+    z_list = hnsw_obj.serach_along_axis(z_vector, k)
     full_list = x_list | y_list | z_list
 
     distance_list = []
