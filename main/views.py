@@ -18,6 +18,11 @@ import numpy as np
 from .models import JobPosting  # Import the JobPosting model
 logger = logging.getLogger(__name__)
 
+def about(request):
+    return render(request, 'about.html')
+
+def contact(request):
+    return render(request, 'contact.html')
 
 def homepage(request):
     return HttpResponse('Hello, World!')

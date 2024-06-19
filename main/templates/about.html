@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+</head>
+
+<body>
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column">
+                    <div class="box">
+                        <h1 class="title">About this project</h1>
+                        <p class="mb-4">This project has stemmed from a Machine Learning Engineering challenge from
+                            Weaviate. The challenge
+                            revolved around making a workflow using some of Weaviate's core tools. At its core, Weaviate
+                            is an
+                            open-source vector database that has additional tooling to help you interact with and
+                            analyze your
+                            data.</p>
+                        <p class="mb-4">One track of the challenge involved clustering and analysis of a dataset
+                            containing job postings from LinkedIn over 2023-24.
+                            Using this as our jumping-off point, this is what the core of the website is centered
+                            around, visualizing the relationship between job listings and user defined terms.</p>
+
+
+                        <p class="mb-4">Let's have a look at how Weaviate to utilized to achieve this.</p>
+                    </div>
+                </div>
+                <div class="column is-one-third">
+                    <a href="https://www.weaviate.io/" target="_blank" rel="noopener noreferrer" class="box">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="media">
+                                    <div class="media-left">
+                                        <figure class="image is-32x32">
+                                            <img src="{% static 'img/weaviate_w.png' %}" alt="Weaviate favicon">
+                                        </figure>
+                                    </div>
+                                    <div class="media-content">
+                                        <p class="title is-6">Weaviate</p>
+                                        <p class="subtitle is-7">Open-Source Vector Database</p>
+                                    </div>
+                                </div>
+
+                                <div class="content" style="font-size: 14px;">
+                                    <p>Check out Weaviate, the open-source vector database used in this project!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="https://www.kaggle.com/datasets/arshkon/linkedin-job-postings" target="_blank"
+                        rel="noopener noreferrer" class="box">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="media">
+                                    <div class="media-left">
+                                        <figure class="image is-32x32">
+                                            <img src="https://www.kaggle.com/static/images/favicon.ico"
+                                                alt="Kaggle favicon">
+                                        </figure>
+                                    </div>
+                                    <div class="media-content">
+                                        <p class="title is-6">LinkedIn Job Postings (2023 - 2024)</p>
+                                        <p class="subtitle is-7">A Snapshot Into the Current Job Market</p>
+                                    </div>
+                                </div>
+
+                                <div class="content" style="font-size: 14px;">
+                                    <p>Here is the relevant Kaggle dataset used in this project.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="box">
+                <h2 class="title is-4">Vector Databases in Weaviate</h2>
+                <p class="mb-4">We won't cover off everything about Vector Databases here, but there is a <a
+                        href="https://weaviate.io/blog/what-is-a-vector-database" target="_blank"
+                        rel="noopener noreferrer">good explainer from Weaviate</a>.But let's cover of some of the points
+                    that we need for later on:</p>
+                <div class="box">
+                    <p class="mb-4">In the context of machine learning, a <b>vector</b> is a mathematical representation
+                        of an object or concept in a high-dimensional space, or put simply an array of numbers
+                        [0.1,0.3,-0.2,...].</p>
+                </div>
+                <div class="box">
+                    <p class="mb-4">An <b>embedding</b> is the process of converting data, in our case, text data about
+                        job listings, into a <b>vector</b> representation that captures the semantic meaning and
+                        relationships of the data.</p>
+                </div>
+            </div>
+            <div class="box">
+                <h2 class="title is-4">Clustering and Analysis</h2>
+                <p class="mb-4">The core of the project is to cluster job listings based on the user-defined terms and
+                    then analyze the relationships between the clusters.</p>
+                <p class="mb-4">The clustering is done using the <a
+                        href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html" target="_blank"
+                        rel="noopener noreferrer">KMeans algorithm</a> from the <a
+                        href="https://scikit-learn.org/stable/index.html" target="_blank" rel="noopener noreferrer">scikit-learn</a>
+                    library.</p>
+                <p class="mb-4">The analysis is done using the <a
+                        href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html" target="_blank"
+                        rel="noopener noreferrer">pandas</a> library.</p>
+            </div>
+    </section>
+</body>
+
+</html>
+{% endblock %}
