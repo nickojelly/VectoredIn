@@ -30,6 +30,12 @@ RAG is a technique that enhances large language model's by providing additional 
 
 ![Sample Image](./static/img/plot_summary.png)
 
+This plot summary is a general summary of the job listings and summarization of the similarities and differences. It works in essentially 3 steps:
+
+1. The closest 5 similar job listings are taken and then summarised using Weaviates generative serach.
+2. These are then aggregating into a meta-analysis prompt using OpenAI 3.5-turbo model.
+3.  This is then output as the inner html to the box.
+
 ##  Technologies Used
 
 -  Python
