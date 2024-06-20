@@ -12,7 +12,7 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 ### 3D Plot of Semantic Distance
 
-![Sample Image](./static/img/Plot_example.jpg)
+![Sample Image](./static/img/Plot_example.png)
 
 
 
