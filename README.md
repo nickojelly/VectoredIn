@@ -38,6 +38,13 @@ This plot summary is a general summary of the job listings and summarization of 
 2. These are then aggregating into a meta-analysis prompt using OpenAI 3.5-turbo model.
 3.  This is then output as the inner html to the box.
 
+### Axis Alignment
+
+Selecting any point displayed in the 3D Scatter on the main page, a summary comapring the alignment with the 3 provided axis can be generated using and OpenAI call with the RAG queries.
+
+<img src="./static/img/example.png" alt="Axis Alignemnt" width="800">
+
+
 ##  Technologies Used
 
 -  Python
