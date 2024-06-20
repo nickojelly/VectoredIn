@@ -18,7 +18,11 @@ Here's an example of the 3d Scatterplot.
 
 On the left hand side is where the 3 axis are set, which can be adjusted and the plot updated. Below that show's the linear correlation between the 2d permutations between the 3 axis.
 
+### RAG Search
 
+RAG is a technique that enhances large language model's by providing additional context when querying. In the context this project, RAG add's in an additional step between our provided axis and their embedding. Here's a quick representation of how this work's in this application:
+
+![Sample Image](./static/img/RAG_diagram.png)
 
 ##  Technologies Used
 
