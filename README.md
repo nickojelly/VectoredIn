@@ -46,6 +46,11 @@ Selecting any point displayed in the 3D Scatter on the main page, a summary coma
 
 The progress bars up the top are epresent the cosine similarirty between a a job listing point selected on the chart and the 3 axis supplied. The cosine similarity here has been normalised to the range of the range of the cosine similarites in the chart. The raw description can also be access via the box at the bottom of the page.
 
+
+## Highlights
+
+### BestWorst Search
+
 ##  Technologies Used
 
 -  Python
@@ -56,9 +61,6 @@ The progress bars up the top are epresent the cosine similarirty between a a job
 -  Hierarchical Navigable Small World (HNSW) algorithm for efficient similarity search
 -  Weaviate for vector storage and retrieval
 
-## Highlights
-
-### BestWorst Search
 
 ##  Features
 
