@@ -27,7 +27,8 @@ VectoredIn is a web application that allows users to explore and gain insights f
 -  Hierarchical Navigable Small World (HNSW) algorithm for efficient similarity search
 -  Weaviate for vector storage and retrieval
 
-## Important Points
+## Highlights
+
 
 
 
