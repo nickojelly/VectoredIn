@@ -1,4 +1,4 @@
-![image](https://github.com/nickojelly/VectoredIn/assets/72242022/88e23408-2e8c-4458-850a-bae73a4bcc20)# VectoredIn 📈🔍
+# VectoredIn 📈🔍
 
 Welcome to the VectoredIn repository! This project is my submission for the Weaviate Machine Learning Engineer challenge. It aims to provide a powerful tool for analyzing and visualizing job market data using Weaviate.
 
