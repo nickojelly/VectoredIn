@@ -29,9 +29,10 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 ## 📂 Repository Structure
 
-- `mysite/`: Django project directory
   - `myapp/`: Main application directory
     - `templates/`: HTML templates for the web interface
+    - `hnsw/`: Tools for python HNSW
+    - `generative/`: Generative tools for website
     - `views.py`: Backend logic for handling requests and data processing
     - `models.py`: Data models for the application
     - ...
