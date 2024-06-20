@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-700LG6TF98"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-700LG6TF98');
+    </script>
     <style>
         body {
             background-color: #d0e1d3;
@@ -363,8 +371,6 @@
         </div>
         <!-- Correlations Modal -->
 
-
-
         <div class="modal" id="correlations-modal">
             <div class="modal-background"></div>
             <div class="modal-card">
@@ -449,12 +455,12 @@
                             closest on each axis, and we use that vector to perform a "near vector generative search"
                             using a prompt that we have given it to summarize the information.</p>
                         <p>Here is an excerpt of the prompt and the call to Weaviate:</p>
-                        <pre><code>prompt = """... Please provide a concise summary that highlights the key aspects of these job listings
-        that contribute to their alignment with the "{text}" axis. Consider the following points in your summary:
-        1. What are the common themes, skills, or requirements mentioned across these job listings?
-        2. How do these job listings relate to the concept of "{text}"?..."""
+                        <pre><code>prompt = """... Please provide a concise summary that highlights the key aspects of these job listings 
+            that contribute to their alignment with the "{text}" axis. Consider the following points in your summary:
+            1. What are the common themes, skills, or requirements mentioned across these job listings?
+            2. How do these job listings relate to the concept of "{text}"?..."""
 
-        single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=3, grouped_task=prompt)</code></pre>
+single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=3, grouped_task=prompt)</code></pre>
                         <p>What we receive out of Weaviate will be 3 summaries on job listings that closely relate to
                             the specified axis.</p>
                         <div class="job-summary">
@@ -463,11 +469,7 @@
                                     <p><strong>Machine Learning Engineer</strong></p>
                                 </div>
                                 <div class="message-body">
-                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these
-                                                job listings aligned with the "Machine Learning Engineer" axis include a
-                                                focus on developing AI models, natural language understanding (NLU),
-                                                natural language processing (NLP), and machine learning (ML) algorithms.
-                                                The job listings require experience in Python, cloud platforms ...
+                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these job listings aligned with the "Machine Learning Engineer" axis include a focus on developing AI models, natural language understanding (NLU), natural language processing (NLP), and machine learning (ML) algorithms. The job listings require experience in Python, cloud platforms ...
                                             </span></em></p>
                                 </div>
                             </article>
@@ -501,7 +503,7 @@
                                 this:</p>
                             <div class="box">
                                 <p>Based on the summaries of the top 3 job listings for each axis, provide an overview
-                                    of the similarities and differences between the axes:</p>
+                                    of the similarities and differences between the axis:</p>
                                 <div class="columns">
                                     <div class="column">
                                         <button class="button is-primary is-fullwidth">Summary 1</button>

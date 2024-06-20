@@ -82,25 +82,3 @@ def initialize_weaviate_client() :
 
     return weaviate_client
 
-# Define a function to call the endpoint and obtain embeddings
-def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts: List[str], rag=False) -> List[List[float]]:
-
-    generate_prompt = "List out the similarities in qualifications, experience and skills between the attached job listings."
-    if rag:
-
-        listings =  weaviate_client.collections.get("JobListings")
-        response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5)
-
-        print(response)
-        
-
-        embeddings =  openai_client.embeddings.create(
-            input=[response.generated], model="text-embedding-3-small"
-        )
-    else:
-        embeddings = openai_client.embeddings.create(
-            input=texts, model="text-embedding-3-small"
-        )
-        
-
-    return embeddings.data[0].embedding

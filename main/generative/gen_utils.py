@@ -3,7 +3,7 @@ from pprint import pprint
 
 import openai
 from ..models import JobPosting, QueryEmbedding  # Import the JobPosting model
-
+from typing import List
 def generate_axis_summary_prompt(text):
     prompt = f"""These job listings are the top 3 most aligned with the "{text}" axis based on their cosine distances.
 
@@ -264,7 +264,6 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
     return msg
 
 
-
 def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weaviate.Client):
     print("Starting alignment summary")
 
@@ -281,3 +280,26 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
     pprint(f"single query generated : {single_query}")
 
     return single_query.generated
+
+# Define a function to call the endpoint and obtain embeddings
+def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts: List[str], rag=False) -> List[List[float]]:
+
+    generate_prompt = "List out the similarities in qualifications, experience and skills between the attached job listings. Only use at max 500 words"
+    if rag:
+
+        listings =  weaviate_client.collections.get("JobListings")
+        response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5)
+
+        print(response)
+        
+
+        embeddings =  openai_client.embeddings.create(
+            input=[response.generated], model="text-embedding-3-small"
+        )
+    else:
+        embeddings = openai_client.embeddings.create(
+            input=texts, model="text-embedding-3-small"
+        )
+        
+
+    return embeddings.data[0].embedding

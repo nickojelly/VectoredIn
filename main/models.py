@@ -7,6 +7,7 @@ class JobPosting(models.Model):
     description = models.TextField()
     products = models.TextField()
     vector = models.TextField() 
+    
 
 
 class QueryEmbedding(models.Model):

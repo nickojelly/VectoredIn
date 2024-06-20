@@ -11,7 +11,7 @@ from django.http import JsonResponse
 import logging
 from plotly.utils import PlotlyJSONEncoder
 import json
-from .utils import hnsw_obj,openai_client,listing_df,weaviate_client, vectorize
+from .utils import hnsw_obj,openai_client,listing_df,weaviate_client
 from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
 import numpy as np
@@ -53,8 +53,8 @@ def vectorize_query_db(text, rag=False):
 
     if not query_embedding:
         # If the query embedding doesn't exist, create a new one
-        vector = vectorize(openai_client,weaviate_client, text)
-        vector_rag = vectorize(openai_client,weaviate_client, text, rag=True) if rag else None
+        vector = gen_utils.vectorize(openai_client,weaviate_client, text)
+        vector_rag = gen_utils.vectorize(openai_client,weaviate_client, text, rag=True) if rag else None
         query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector), rag_query_embedding=json.dumps(vector_rag) if rag else None)
         query_embedding.save()
     else:
@@ -62,7 +62,7 @@ def vectorize_query_db(text, rag=False):
         vector = np.array(json.loads(query_embedding.query_embedding))
         if rag:
             if not query_embedding.rag_query_embedding:
-                vector_rag = vectorize(openai_client,weaviate_client, text, rag=True)
+                vector_rag = gen_utils.vectorize(openai_client,weaviate_client, text, rag=True)
                 query_embedding.rag_query_embedding = json.dumps(vector_rag)
                 query_embedding.save()
             vector = np.array(json.loads(query_embedding.rag_query_embedding))
@@ -71,9 +71,15 @@ def vectorize_query_db(text, rag=False):
 
 def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
 
-    x_vector  = vectorize_query_db(x_text,rag)
-    y_vector  = vectorize_query_db(y_text,rag)
-    z_vector  = vectorize_query_db(z_text,rag)
+    try:
+        x_vector  = vectorize_query_db(x_text,rag)
+        y_vector  = vectorize_query_db(y_text,rag)
+        z_vector  = vectorize_query_db(z_text,rag)
+    except Exception as e:
+        print(f"Error in vectorizing query: {e}")
+        x_vector  = vectorize_query_db(x_text,False)
+        y_vector  = vectorize_query_db(y_text,False)
+        z_vector  = vectorize_query_db(z_text,False)
 
     # Rest of the code remains the same
     x_list = hnsw_obj.serach_along_axis(x_vector, k,n=n)
@@ -249,11 +255,6 @@ def generate_plot_summary(request):
         min_z_uuid = distance_df.query('z_dist == @z_min').wv_uuid.values[0]
 
         uuids = [min_x_uuid, min_y_uuid, min_z_uuid]
-
-
-        # job_listing = distance_df.query('wv_uuid == @uuid')
-        # print(f"{uuids=}")
-
 
         text = (x_text, y_text, z_text)
 
