@@ -6,7 +6,7 @@ See it live! https://app.nbdata.co
 
 ##  Project Overview
 
-JobMarketAnalyzer is a web application that allows users to explore and gain insights from job market data. It leverages the power of natural language processing (NLP) and machine learning techniques to process and analyze job listings. 🧠💼
+VectoredIn is a web application that allows users to explore and gain insights from job market data. It leverages the power of natural language processing (NLP) and machine learning techniques to process and analyze job listings. 🧠💼
 
 ##  Features
 
