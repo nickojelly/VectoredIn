@@ -29,7 +29,7 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 ## Highlights
 
-# BestWorst Search
+### BestWorst Search
 
 
 
