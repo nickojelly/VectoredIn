@@ -12,8 +12,11 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 ### 3D Plot of Semantic Distance
 
+Here's an example of the 3d Scatterplot.
+
 ![Sample Image](./static/img/Plot_example.png)
 
+On the left hand side is where the 3 axis are set, which can be adjusted and the plot updated. Below that show's the linear correlation between the 2d permutations between the 3 axis.
 
 
 
