@@ -10,22 +10,22 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 ##  Features
 
-- 📝 Semantic analysis on job postings related to AI and Machine Learning
-- 📊 Interactive 3D visualization of job data based on user-defined keywords
-- 🔍 Customizable axis labels for data exploration
-- 📈 Real-time updates and dynamic plot generation
-- 💡 Detailed job summary and alignment analysis
-- 🎨 User-friendly interface with modern design
+-  Semantic analysis on job postings related to AI and Machine Learning
+-  Interactive 3D visualization of job data based on user-defined keywords
+-  Customizable axis labels for data exploration
+-  Real-time updates and dynamic plot generation
+-  Detailed job summary and alignment analysis
+-  User-friendly interface with modern design
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
-- 🐍 Python
-- 🌐 Django web framework
-- 📜 HTML, CSS, JavaScript
-- 📊 Plotly for interactive visualizations
-- 🧠 OpenAI API for generating embeddings
-- 🤖 Hierarchical Navigable Small World (HNSW) algorithm for efficient similarity search
-- 🗄️ Weaviate for vector storage and retrieval
+-  Python
+-  Django web framework
+-  HTML, CSS, JavaScript
+-  Plotly for interactive visualizations
+-  OpenAI API for generating embeddings
+-  Hierarchical Navigable Small World (HNSW) algorithm for efficient similarity search
+-  Weaviate for vector storage and retrieval
 
 ## 📂 Repository Structure
 
