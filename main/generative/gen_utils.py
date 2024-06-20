@@ -2,7 +2,7 @@ import weaviate
 from pprint import pprint
 
 import openai
-from ..models import JobPosting, QueryEmbedding  # Import the JobPosting model
+from ..models import JobPosting, QueryEmbedding, Summaries  # Import the JobPosting model
 from typing import List
 def generate_axis_summary_prompt(text):
     prompt = f"""These job listings are the top 3 most aligned with the "{text}" axis based on their cosine distances.
@@ -128,8 +128,13 @@ def generate_plot_summary_prompt(axis, text):
 def generate_job_summary_prompt(text, distances, dist_ranges):
     x_text, y_text, z_text = text
     x_dist, y_dist, z_dist = distances
-
+    print(x_text)
+    rag_x = QueryEmbedding.objects.filter(query=x_text).first().rag_query
+    rag_y = QueryEmbedding.objects.filter(query=y_text).first().rag_query
+    rag_z = QueryEmbedding.objects.filter(query=z_text).first().rag_query
     print(dist_ranges)
+
+    print(f"{x_text} : {rag_x}")
 
     x_percentile = 100 * (1-(x_dist - dist_ranges['x_range'][0]) / (dist_ranges['x_range'][1] - dist_ranges['x_range'][0]))
     y_percentile = 100 * (1-(y_dist - dist_ranges['y_range'][0]) / (dist_ranges['y_range'][1] - dist_ranges['y_range'][0]))
@@ -140,6 +145,12 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
     prompt = f"""
     Analyze the job listing asigned to this prompt.
 
+    Here are some details about the axis:
+
+    - {x_text}: {rag_x}
+    - {y_text}: {rag_y}
+    - {z_text}: {rag_z}
+    
     The job listing is measured on three axes: {x_text}, {y_text}, and {z_text}. The cosine distances of the job listing on these axes are as follows:
 
     - {x_text}: {x_dist:.3f} which is the {x_percentile:.1f}% percentile of all job listings.
@@ -218,7 +229,7 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
       </article>
 
       <p>[Provide a summary of the overall alignment of the job listing with the axes, considering the key aspects of the job listing.]</p>
-      <p><strong>Key Skills and Responsibilities:</strong></p>
+      <p class="bm5"> <strong>Key Skills and Responsibilities:</strong></p>
       <ul>
         <li>[List key skills and responsibilities mentioned in the job listing]</li>
       </ul>
@@ -231,6 +242,10 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
     print("Starting alignment summary")
     uuid_x, uuid_y, uuid_z = uuid
     text_x, text_y, text_z = text
+
+    summary = Summaries.objects.filter(querys=[text_x,text_y,text_z]).first()
+    if summary:
+        return summary.summaries
 
     prompts = []
     summaries = []
@@ -260,6 +275,9 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
 
     msg = response.choices[0].message.content
     print(msg)
+
+    summary = Summaries.objects.create(querys=[text_x,text_y,text_z], summaries=msg)
+    summary.save()
 
     return msg
 
@@ -304,9 +322,10 @@ def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts
             input=[response.generated], model="text-embedding-3-small"
         )
     else:
+        response = None
         embeddings = openai_client.embeddings.create(
             input=texts, model="text-embedding-3-small"
         )
         
 
-    return embeddings.data[0].embedding
+    return embeddings.data[0].embedding, response.generated if response else None

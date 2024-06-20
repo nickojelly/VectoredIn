@@ -14,8 +14,10 @@ import json
 from .utils import hnsw_obj,openai_client,listing_df,weaviate_client
 from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
+from pprint import pprint
 import numpy as np
 from .models import JobPosting, QueryEmbedding  # Import the JobPosting model
+
 logger = logging.getLogger(__name__)
 
 def about(request):
@@ -53,20 +55,17 @@ def vectorize_query_db(text, rag=False):
 
     if not query_embedding:
         # If the query embedding doesn't exist, create a new one
-        vector = gen_utils.vectorize(openai_client,weaviate_client, text)
-        vector_rag = gen_utils.vectorize(openai_client,weaviate_client, text, rag=True) if rag else None
-        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector), rag_query_embedding=json.dumps(vector_rag) if rag else None)
+        vector,_ = gen_utils.vectorize(openai_client,weaviate_client, text)
+        vector_rag, rag_query = gen_utils.vectorize(openai_client,weaviate_client, text, rag=True)
+        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector),rag_query=rag_query, rag_query_embedding=json.dumps(vector_rag) )
         query_embedding.save()
     else:
         # If the query embedding exists, retrieve the vectors
-        vector = np.array(json.loads(query_embedding.query_embedding))
+ 
         if rag:
-            if not query_embedding.rag_query_embedding:
-                vector_rag = gen_utils.vectorize(openai_client,weaviate_client, text, rag=True)
-                query_embedding.rag_query_embedding = json.dumps(vector_rag)
-                query_embedding.save()
             vector = np.array(json.loads(query_embedding.rag_query_embedding))
-
+        else:
+            vector = np.array(json.loads(query_embedding.query_embedding))
     return vector
 
 def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
@@ -97,10 +96,11 @@ def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
     distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
     distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
 
+
     return distance_df
 
 def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
-    # QueryEmbedding.objects.all().delete()
+
     #Process the data:
     if update:
         distance_df = update_data(x_text, y_text, z_text,k,n,rag)
@@ -171,9 +171,6 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         margin=dict(r=10, l=10, b=10, t=10),
     )
 
-
-    
-
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
 
     return plot_div, [trace], layout, [xy_cor, xz_cor, yz_cor]
@@ -240,19 +237,20 @@ def generate_plot_summary(request):
         y_text = data.get('y_text', '')
         z_text = data.get('z_text', '')
 
+        plotdata = data.get('plot_data', [])
+        uuids = plotdata[0]['customdata']
+        x_data = plotdata[0]['x']
+        y_data = plotdata[0]['y']
+        z_data = plotdata[0]['z']
+
+        print(f"Plotdata = {plotdata}")
+
         distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
         distance_df = pd.read_feather(distance_df_path)
 
-        x_max = distance_df['x_dist'].max()
-        x_min = distance_df['x_dist'].min()
-        y_max = distance_df['y_dist'].max()
-        y_min = distance_df['y_dist'].min()
-        z_max = distance_df['z_dist'].max()
-        z_min = distance_df['z_dist'].min()
-
-        min_x_uuid = distance_df.query('x_dist == @x_min').wv_uuid.values[0]
-        min_y_uuid = distance_df.query('y_dist == @y_min').wv_uuid.values[0]
-        min_z_uuid = distance_df.query('z_dist == @z_min').wv_uuid.values[0]
+        min_x_uuid = uuids[np.argmin(x_data)]
+        min_y_uuid = uuids[np.argmin(y_data)]
+        min_z_uuid = uuids[np.argmin(z_data)]
 
         uuids = [min_x_uuid, min_y_uuid, min_z_uuid]
 
@@ -268,33 +266,22 @@ def generate_plot_summary(request):
 def get_alignment_summary(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+
+        print('allignment summary called')
+        pprint(data)
         uuid = data.get('uuid')
         x_text = data.get('x_text', '')
         y_text = data.get('y_text', '')
         z_text = data.get('z_text', '')
 
-        distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
-        distance_df = pd.read_feather(distance_df_path)
-
-        x_max = distance_df['x_dist'].max()
-        x_min = distance_df['x_dist'].min()
-        y_max = distance_df['y_dist'].max()
-        y_min = distance_df['y_dist'].min()
-        z_max = distance_df['z_dist'].max()
-        z_min = distance_df['z_dist'].min()
-
-        dist_ranges = {
-            'x_range': [x_min, x_max],
-            'y_range': [y_min, y_max],
-            'z_range': [z_min, z_max]
-        }
+        dist_ranges = data['pointdata']['ranges']
+        
 
         if uuid:
-            job_listing = distance_df.query('wv_uuid == @uuid')
-            if not job_listing.empty:
-                text = (x_text, y_text, z_text)
-                distances = (job_listing.iloc[0]['x_dist'], job_listing.iloc[0]['y_dist'], job_listing.iloc[0]['z_dist'])
-                alignment_summary = gen_utils.generate_alignment_summary(uuid, text, distances,dist_ranges, client = weaviate_client)
-                return JsonResponse({'summary': alignment_summary})
-
+            text = (x_text, y_text, z_text)
+            distances = (data['pointdata']['x'], data['pointdata']['y'], data['pointdata']['z'])
+            alignment_summary = gen_utils.generate_alignment_summary(uuid, text, distances,dist_ranges, client = weaviate_client)
+            return JsonResponse({'summary': alignment_summary})
+        else:
+            print('no uuid')
     return JsonResponse({'summary': None})

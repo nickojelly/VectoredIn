@@ -15,3 +15,7 @@ class QueryEmbedding(models.Model):
     rag_query = models.TextField(null=True)
     query_embedding = models.TextField()
     rag_query_embedding = models.TextField(null=True)
+
+class Summaries(models.Model):
+    querys = models.TextField(null=True)
+    summaries = models.TextField(null=True)

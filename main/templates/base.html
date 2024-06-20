@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>3-axis Semantic Cosine Distance</title>
+    <title>VectoredIn</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -355,6 +355,9 @@
                         <p class="bm4">Here we can set each of the three axes to explore the relevant job listings. The
                             job listings
                             are evaluated against the cosine distance to these 3 axes.</p>
+                        <p><b>X Y Z</b> Each of the axis to search along</p>
+                        <p><b>N</b> The number of interval to search along the axis</p>
+                        <p><b>K</b> The number of points to return at each interval</p>
                         <p class="bm4">You can set the axes to whatever you would like, but keep in mind that this
                             dataset is based
                             around job listings in Machine Learning and AI.</p>
@@ -615,6 +618,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             progressBar.classList.add(getCorrelationColor(correlation));
             progressBar.title = (correlation - 1).toFixed(2);
         }
+
+
         // Fetch initial plot data from Django
         fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
             .then(response => response.json())
@@ -630,13 +635,39 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 // Attach event listeners after the plot is initialized
                 var plot = document.getElementById('plot-container');
                 var xMax = plot.layout.scene.xaxis.range[1];
+
+                console.log(plot.data)
+
+                // Get the plot data
+                var plotData = plot.data;
+                // Get the x, y, and z values from the plot data
+                var xValues = plotData[0].x;
+                var yValues = plotData[0].y;
+                var zValues = plotData[0].z;
+                console.log(xValues)
+                // Calculate the minimum and maximum values for x, y, and z
+                var xMin = Math.min(...xValues);
+                var xMax = Math.max(...xValues);
+                var yMin = Math.min(...yValues);
+                var yMax = Math.max(...yValues);
+                var zMin = Math.min(...zValues);
+                var zMax = Math.max(...zValues);
+
+                // Do something with the minimum and maximum values
+                console.log('X range:', xMin, xMax);
+                console.log('Y range:', yMin, yMax);
+                console.log('Z range:', zMin, zMax);
                 plot.on('plotly_click', function (eventData) {
                     var point = eventData.points[0];
                     pointData = {
                         customData: point.customdata,
                         x: point.x,
                         y: point.y,
-                        z: point.z
+                        z: point.z,
+                        ranges: {
+                            x_range: [xMin, xMax],
+                            y_range: [yMin, yMax],
+                            z_range: [zMin, zMax],}
                     };
 
                     // Send the clicked point data to the Django view function
@@ -661,14 +692,12 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                                 document.getElementById('y-progress').value = xMax - data.summary.y;
                                 document.getElementById('z-progress').value = xMax - data.summary.z;
 
-
-
                                 // Collapse the job description by default
                                 var collapsible = document.querySelector('.is-collapsible');
                                 collapsible.classList.remove('is-active');
 
                                 // Display the generated summary
-                                document.getElementById('alignment-summary').innerHTML = data.summary.summary;
+                                document.getElementById('alignment-summary').innerHTML = 'Click to generate summary.';
                             } else {
                                 // Clear the summary box if no data is available
                                 document.getElementById('summary-title').textContent = '';
@@ -765,6 +794,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             var xText = document.querySelector('input[name="x_text"]').value;
             var yText = document.querySelector('input[name="y_text"]').value;
             var zText = document.querySelector('input[name="z_text"]').value;
+            var plot = document.getElementById('plot-container');
 
             fetch('/generate_plot_summary/', {
                 method: 'POST',
@@ -775,7 +805,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 body: JSON.stringify({
                     x_text: xText,
                     y_text: yText,
-                    z_text: zText
+                    z_text: zText,
+                    plot_data: plot.data,
                 })
             })
                 .then(response => response.json())
@@ -816,7 +847,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         uuid: pointData.customData,
                         x_text: xText,
                         y_text: yText,
-                        z_text: zText
+                        z_text: zText,
+                        pointdata: pointData,
                     })
                 })
                     .then(response => response.json())
