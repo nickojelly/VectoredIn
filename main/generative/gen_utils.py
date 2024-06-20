@@ -284,13 +284,20 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
 # Define a function to call the endpoint and obtain embeddings
 def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts: List[str], rag=False) -> List[List[float]]:
 
-    generate_prompt = "List out the similarities in qualifications, experience and skills between the attached job listings. Only use at max 500 words"
+    generate_prompt = """Generate a list of the 5 common skills, 5 common responsiblities, and 5 common technologies for the attached job listings.
+    Your response should be in the following format, Do Not return anything else only return 1 list of 5 items for each of the following categories:
+    Title: [Common Job Title]
+    Skills: [List of 5 common skills]
+    Responsibilities: [List of 5 common responsibilities]
+    Technologies: [List of 5 common technologies]
+    
+    """
     if rag:
 
         listings =  weaviate_client.collections.get("JobListings")
         response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5)
 
-        print(response)
+        pprint(response.generated,width=120)
         
 
         embeddings =  openai_client.embeddings.create(

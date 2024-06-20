@@ -190,27 +190,16 @@ class HNSW(object):
 
         distance_range = max_dist[0] - min_dist
         interval = distance_range/n
-        print(f"interval: {interval}")
         for i in range(0,n-1):
             adj = min_dist + interval*(i+1)
-            print(f"adj: {adj}")
             search_result = self.search(q,k=k,ef=ef,adj=adj)
-            # full_vector_list[i] = [x[0] for x in search_result]
-            # print(f"{[self[x[0]] for x in search_result]=}")
-            # print(f"{search_result=}")
             original_vecotrs = [self.data[x[0]] for x in search_result]
-            # print(f"{original_vecotrs=}")
             original_dist = self.vectorized_distance(q,original_vecotrs)
-            # full_vector_list[i] = [x[0] for x in search_result]
             full_vector_list[i] = list(zip([x[0] for x in search_result],original_dist))
-            print(f"distance in search: {original_dist}")
-            # print(f"distance in search: {search_result[0]}")
-            print(f"search_result: {full_vector_list[i]=}")
 
         remapped_dict = {} 
         vector_dict = {}
         for interval, idx in full_vector_list.items():
-            print(f"{idx=}")
             new_dict = [(self.df['wv_uuid'].iloc[i[0]],i[1]) for i in idx]
             remapped_dict[interval] = new_dict
             vector_dict.update({self.df['wv_uuid'].iloc[i[0]]:self.data[i[0]] for i in idx})
@@ -233,7 +222,6 @@ class HNSW(object):
         dist = distance(q, self.data[point],adj)
         # look for the closest neighbor from the top to the 2nd level
         for layer in reversed(graphs[-1:]):
-            print('layer')
             point, dist = self._search_graph_ef1(q, point, dist, layer,adj)
         # look for ef neighbors in the bottom level
         ep = self._search_graph(q, [(-dist, point)], graphs[0], ef,adj)
@@ -263,8 +251,6 @@ class HNSW(object):
             edges = [e for e in layer[c] if e not in visited]
             visited.update(edges)
             dists = vectorized_distance(q, [data[e] for e in edges], self.adjustable_distance, adj)
-            print(f"distances: {dists}")
-            print(f"best_dist: {best_dist}")
             for e, dist in zip(edges, dists):
                 if dist < best_dist:
                     best = e
@@ -282,8 +268,6 @@ class HNSW(object):
         candidates = [(-mdist, p) for mdist, p in ep]
         heapify(candidates)
         visited = set(p for _, p in ep)
-        print(f"visited: {visited}")
-
         while candidates:
             dist, c = heappop(candidates)
             mref = ep[0][0]
