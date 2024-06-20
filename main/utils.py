@@ -64,21 +64,24 @@ weaviate_client = None
 def initialize_weaviate_client() :
     global weaviate_client  # Declare that you're modifying the global variable
 
-    wdc_url = os.environ.get("WEAVIATE_URL")
+    wdc_url = os.environ.get("WCD_URL")
     wdc_api_key = os.environ.get("WEAVIATE_KEY")
     openai_api_key = os.environ.get('OPENAI_API_KEY')
 
-    print
 
-    print(f"Itinializing Weaviate client with url {wdc_url} and api key {wdc_api_key}")
+    print(f"Itinializing Weaviate client with url {wdc_url}")
+    print(wdc_url)
+    print('45.79.238.197')
     
-    weaviate_client = weaviate.connect_to_wcs(
-        cluster_url=wdc_url,
+    weaviate_client = weaviate.connect_to_local(
+        host=wdc_url,
         auth_credentials=weaviate.auth.AuthApiKey(wdc_api_key),
         headers={
         "X-OpenAI-Api-Key": openai_api_key  # Replace with your inference API key
     }
     )
+
+    print(weaviate_client)
 
     return weaviate_client
 
