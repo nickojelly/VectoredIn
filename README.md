@@ -8,14 +8,12 @@ See it live! https://app.nbdata.co
 
 VectoredIn is a web application that allows users to explore and gain insights from job market data. It leverages the power of natural language processing (NLP) and machine learning techniques to process and analyze job listings. 
 
-##  Features
+## Features 
 
--  Semantic analysis on job postings related to AI and Machine Learning
--  Interactive 3D visualization of job data based on user-defined keywords
--  Customizable axis labels for data exploration
--  Real-time updates and dynamic plot generation
--  Detailed job summary and alignment analysis
--  User-friendly interface with modern design
+### 3D Plot of Semantic Distance
+
+
+
 
 ##  Technologies Used
 
@@ -31,7 +29,14 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 ### BestWorst Search
 
+##  Features
 
+-  Semantic analysis on job postings related to AI and Machine Learning
+-  Interactive 3D visualization of job data based on user-defined keywords
+-  Customizable axis labels for data exploration
+-  Real-time updates and dynamic plot generation
+-  Detailed job summary and alignment analysis
+-  User-friendly interface with modern design
 
 ## 📂 Repository Structure
 
