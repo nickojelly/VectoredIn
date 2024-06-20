@@ -4,7 +4,7 @@ Welcome to the VectoredIn repository! This project is my submission for the Weav
 
 See it live! https://app.nbdata.co
 
-Weaviate: (https://weaviate.io/)
+Weaviate: https://weaviate.io/
 
 ##  Project Overview
 
