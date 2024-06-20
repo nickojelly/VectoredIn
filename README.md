@@ -1,4 +1,4 @@
-# VectoredIn 📈🔍
+![image](https://github.com/nickojelly/VectoredIn/assets/72242022/88e23408-2e8c-4458-850a-bae73a4bcc20)# VectoredIn 📈🔍
 
 Welcome to the VectoredIn repository! This project is my submission for the Weaviate Machine Learning Engineer challenge. It aims to provide a powerful tool for analyzing and visualizing job market data using Weaviate.
 
@@ -25,6 +25,10 @@ On the left hand side is where the 3 axis are set, which can be adjusted and the
 RAG is a technique that enhances large language model's by providing additional context when querying. In the context this project, RAG add's in an additional step between our provided axis and their embedding. Here's a quick representation of how this work's in this application:
 
 ![Sample Image](./static/img/RAG_diagram.png)
+
+### Plot Summary
+
+![Sample Image](./static/img/plot_summary.png)
 
 ##  Technologies Used
 
