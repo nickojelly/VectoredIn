@@ -2,7 +2,9 @@
 
 Welcome to the VectoredIn repository! This project is my submission for the Weaviate Machine Learning Engineer challenge. It aims to provide a powerful tool for analyzing and visualizing job market data using Weaviate.
 
-See it live! https://app.nbdata.co
+See it live! [https://]https://app.nbdata.co
+
+Weaviate: [https://](https://weaviate.io/)
 
 ##  Project Overview
 
