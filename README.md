@@ -47,7 +47,7 @@ Selecting any point displayed in the 3D Scatter on the main page, a summary coma
 The progress bars up the top are epresent the cosine similarirty between a a job listing point selected on the chart and the 3 axis supplied. The cosine similarity here has been normalised to the range of the range of the cosine similarites in the chart. The raw description can also be access via the box at the bottom of the page.
 
 
-## Highlights
+## HNSW & ANN
 
 ### BestWorst Search
 
