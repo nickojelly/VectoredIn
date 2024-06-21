@@ -229,10 +229,12 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
       </article>
 
       <p>[Provide a summary of the overall alignment of the job listing with the axes, considering the key aspects of the job listing.]</p>
+      <div class="box">
       <p class="bm5"> <strong>Key Skills and Responsibilities:</strong></p>
       <ul>
         <li>[List key skills and responsibilities mentioned in the job listing]</li>
       </ul>
+      </div>
     </div>
     """
 

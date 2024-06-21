@@ -10,7 +10,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-700LG6TF98"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
 
         gtag('config', 'G-700LG6TF98');
@@ -165,8 +165,7 @@
                     <div class="box form-box">
                         <h3 class="title is-4">
                             Semantic Axis
-                            <span id="axis-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
-                                data-tooltip="Set the 3 axis for the semantic distance plot,&#13;
+                            <span id="axis-tooltip-icon" class="icon has-tooltip-right tooltip-icon" data-tooltip="Set the 3 axis for the semantic distance plot,&#13;
                                 click for more info">
                                 <i class="fas fa-info-circle"></i>
                             </span>
@@ -251,8 +250,8 @@
                     <div class="box">
                         <h2 class="title is-4">
                             Axis Correlations
-                            <span id="correlations-tooltip-icon" class="icon has-tooltip-right tooltip-icon" data-html="true"
-                                data-tooltip="Correlation values between axes,&#013;&#010;
+                            <span id="correlations-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
+                                data-html="true" data-tooltip="Correlation values between axes,&#013;&#010;
                                 click for more info">
                                 <i class="fas fa-info-circle"></i>
                             </span>
@@ -282,26 +281,37 @@
         </div>
         <div class="container">
             <div class="box mb-5">
-                <h2 class="title is-4">Plot Summary
-                    <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
-                        data-tooltip="Click to view the plot summary,&#13;
-                        click for more info">
-                        <i class="fas fa-info-circle"></i>
-                    </span>
-                    <button id="generate-summary-btn" class="button is-primary is-small">Generate</button>
-                </h2>
-                <div class="content">
-                    <p id="plot-summary"></p>
+                <div class="is-collapsible">
+                    <div class="is-collapsible-trigger">
+                        <h2 class="title is-4">Plot Summary
+                            <button id="generate-summary-btn" class="button is-primary is-small">Generate</button>
+                            <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
+                                data-tooltip="Click to view the plot summary">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        </h2>
+                        <a class="is-chevron">
+                            <span class="icon is-small">
+                                <i class="fas fa-chevron-down"></i>
+                            </span>
+                        </a>
+                    </div>
+                    <div class="is-collapsible-content" style="display: none;">
+                        <div class="content">
+                            <p id="plot-summary"> Click generate above to generate a plot summary
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
         <div class="container">
             <div class="box mb-5">
                 <!-- <label for="summary-box"></label> -->
                 <div id="summary-box">
                     <div class="box">
                         <h4 class="title is-4" id="summary-title">Click on a point to learn more</h4>
+
                         <h5 class="subtitle is-5" id="summary-company"></h5>
                         <div class="progress-bars">
                             <div class="progress-bar">
@@ -322,7 +332,12 @@
                     <div class="box">
                         <h4 class="title is-4">Alignment Summary
                             <button id="generate-alignment-btn" class="button is-primary is-small">Generate</button>
+                            <span id="alignment-tooltip-icon" class="icon has-tooltip-right tooltip-icon" data-tooltip="Provides information on the selected point in the plot above,&#13;
+                            click for more info">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </h4>
+
                         <div id="alignment-summary"></div>
                     </div>
                     <div class="box">
@@ -369,6 +384,32 @@
                             generate a vector. This vector is then used to search the vector database to find relevant
                             job listings.</p>
                         <p class="bm4">For more information, please see the info tab at the top of the app.</p>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                </footer>
+            </div>
+        </div>
+        <!-- Alignment Modal -->
+
+        <div class="modal" id="alignment-modal">
+            <div class="modal-background"></div>
+            <div class="modal-card alignment-modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Axis Information</p>
+                    <button class="delete" aria-label="close" id="close-alignment-modal"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="content">
+                        <p class="bm4">This section provides more information about a specific job listing selected in
+                            the plot above. In the 3 progress bars, the cosine similarity is shown to represent how
+                            closely this specific job listing aligns with the given axis. </p>
+                        <p class="bm4">Using the cosine similarity here is different from the plot above, which is the
+                            cosine distance. This provides a more intuitive representation at a glance, as higher means
+                            more aligned. These cosine similarities have also been normalized to the ranges of distances
+                            on the chart.</p>
+                        <p class="bm4">The axis summary below, takes the RAG queries defined above for the axis, and
+                            then compares the job on each of these axis to generate this alignment summary </p>
                     </div>
                 </section>
                 <footer class="modal-card-foot">
@@ -475,7 +516,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                                     <p><strong>Machine Learning Engineer</strong></p>
                                 </div>
                                 <div class="message-body">
-                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these job listings aligned with the "Machine Learning Engineer" axis include a focus on developing AI models, natural language understanding (NLU), natural language processing (NLP), and machine learning (ML) algorithms. The job listings require experience in Python, cloud platforms ...
+                                    <p><em><span style="white-space: pre-wrap;">Summary: The key aspects that make these
+                                                job listings aligned with the "Machine Learning Engineer" axis include a
+                                                focus on developing AI models, natural language understanding (NLU),
+                                                natural language processing (NLP), and machine learning (ML) algorithms.
+                                                The job listings require experience in Python, cloud platforms ...
                                             </span></em></p>
                                 </div>
                             </article>
@@ -670,7 +715,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         ranges: {
                             x_range: [xMin, xMax],
                             y_range: [yMin, yMax],
-                            z_range: [zMin, zMax],}
+                            z_range: [zMin, zMax],
+                        }
                     };
 
                     // Send the clicked point data to the Django view function
@@ -787,7 +833,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         document.getElementById('generate-summary-btn').addEventListener('click', function () {
             var button = this;
             rag = 'false'
-            
+
             button.classList.add('is-loading');
 
             generatePlotSummary(button);
@@ -815,6 +861,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
                     if (data.summary) {
+                        var collapsible = document.querySelector('.is-collapsible');
+                        var content = collapsible.querySelector('.is-collapsible-content');
+                        content.style.display = 'block';
                         document.getElementById('plot-summary').innerHTML = data.summary;
                     } else {
                         document.getElementById('plot-summary').textContent = 'No summary available.';
@@ -884,6 +933,15 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         var plotSummaryIcon = document.getElementById('plot-summary-icon');
         var closePlotSummaryModalBtn = document.getElementById('close-plot-summary-modal');
 
+        var plotSummaryModal = document.getElementById('plot-summary-modal');
+        var plotSummaryIcon = document.getElementById('plot-summary-icon');
+        var closePlotSummaryModalBtn = document.getElementById('close-plot-summary-modal');
+
+        var alignmentModal = document.getElementById('alignment-modal');
+        var axisAlignmentIcon = document.getElementById('alignment-tooltip-icon');
+        var closeTooltipModalBtn = document.getElementById('close-alignment-modal');
+
+
         // Open the tooltip modal when the axis tooltip icon is clicked
         if (axisTooltipIcon) {
             axisTooltipIcon.addEventListener('click', function () {
@@ -911,6 +969,15 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             console.log('plotSummaryIcon element not found');
         }
 
+        // Open the tooltip modal when the axis tooltip icon is clicked
+        if (axisAlignmentIcon) {
+            axisAlignmentIcon.addEventListener('click', function () {
+                alignmentModal.classList.add('is-active');
+            });
+        } else {
+            console.log('axisAlignmentIcon element not found');
+        }
+
         // Plot Summary Modal
         document.getElementById('close-plot-summary-modal').addEventListener('click', function () {
             document.getElementById('plot-summary-modal').classList.remove('is-active');
@@ -926,11 +993,17 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             document.getElementById('correlations-modal').classList.remove('is-active');
         });
 
+        // Tooltip Modal
+        document.getElementById('close-alignment-modal').addEventListener('click', function () {
+            document.getElementById('alignment-modal').classList.remove('is-active');
+        });
+
         document.querySelectorAll('.modal-background').forEach(function (background) {
             background.addEventListener('click', function () {
                 tooltipModal.classList.remove('is-active');
                 correlationsModal.classList.remove('is-active');
                 plotSummaryModal.classList.remove('is-active');
+                alignmentModal.classList.remove('is-active');
             });
         });
 
@@ -948,6 +1021,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 });
             });
         });
+
 
     </script>
 </body>
