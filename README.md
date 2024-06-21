@@ -111,7 +111,7 @@ The basic steps are:
 
 This process is then repeated for the 2 other axis queries, then once we have all `k * n * 3` vectors, we calculate their correct cosine distance's (no adjustment) from each of the 3 axis, and use this distances to plot the points on a 3D Scatter using Plotly
 
-The main drawback from this approach is that this HNSW funcationality is implemented in Python and not using Weaviate. This means that 2 HNSW graphs will have to be created, the original one in Weaviate, then the vectors are downloaded and an offline HNSW graph is created using python. In the offline graph the `uuid` from 
+The main drawback from this approach is that this HNSW funcationality is implemented in Python and not using Weaviate. This means that 2 HNSW graphs will have to be created, the original one in Weaviate, then the vectors are downloaded and an offline HNSW graph is created using python. In the offline graph the `uuid` from Weaviate, and this is used to reference back to Weaviate for other functionality in the website.
 
 ##  Technologies Used
 
