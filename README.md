@@ -49,6 +49,10 @@ The progress bars up the top are epresent the cosine similarirty between a a job
 
 ## HNSW & ANN
 
+The way that Weavite implemented vector search is by using the Heirachial Navigatable Small Worlds algorithm (HNSW), which is an Approximate Nearest Neighbour (ANN) search alogrithm that works on multi-layered graphs. HNSW provided a very fast, efficient way to approach similarity search, and is one of the reasons why Vector queries are so performative even on very large databases.
+
+One of the challenges we're faced with in this project is that we want to be able to query our database and not only return results that are very similar to the query, but we want a range of response with varying levels of similarity. This is quite counter-productive to the meaning of ANN, but we can adapt the HNSW framework with some simple modifications to achieve this goal.
+
 ### BestWorst Search
 
 ##  Technologies Used
