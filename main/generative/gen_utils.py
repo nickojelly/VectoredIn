@@ -315,13 +315,21 @@ def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts
     if rag:
 
         listings =  weaviate_client.collections.get("JobListings")
-        response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5)
+        try:
+            response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5).generated
+        except Exception as e:
+            print(e)
+            #failover if it dosent work
+            print(listings.query.near_text(query=texts))
+            response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=1).generated
+            print(response)
+            # response = texts[0]
 
-        pprint(response.generated,width=120)
+        pprint(response,width=120)
         
 
         embeddings =  openai_client.embeddings.create(
-            input=[response.generated], model="text-embedding-3-small"
+            input=[response], model="text-embedding-3-small"
         )
     else:
         response = None
@@ -330,4 +338,4 @@ def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts
         )
         
 
-    return embeddings.data[0].embedding, response.generated if response else None
+    return embeddings.data[0].embedding, response
