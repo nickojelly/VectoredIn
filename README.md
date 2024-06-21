@@ -55,6 +55,64 @@ One of the challenges we're faced with in this project is that we want to be abl
 
 ### BestWorst Search
 
+The goal for best worst search is we need a way to adjust our HNSW search algorithm to be able to control what distance points we are looking for, and return a points across that range. Here's a quick diagram to explain the funcationality we need:
+
+<img src="./static/img/single_axis_diagram.png" alt="Single Axis HNSw" width="800">
+
+In this diagram we can see that we get a range of results with varying cosine distances, and will provide us with an interseting axis to plot of data on.
+
+The way that this is implemented in this project is by simply adjusting the cosine distance function at query time, to affect the distance metric that HNSW serach is trying to minimize.
+
+```python
+    def cosine_distance(self, a, b):
+        #Cosine distance is 1 - cosine similarity
+        # cos(theta) = (a . b) / (||a|| ||b||)
+        cos_sim = np.dot(a, b)/(np.linalg.norm(a)*(np.linalg.norm(b)))
+        return 1 - cos_sim
+
+    def adjustable_distance(self, a, b, adj):
+        #Same as above but we can vary the distance function
+        #Cosine distance range is [0, 2]
+        cos_sim = np.dot(a, b)/(np.linalg.norm(a)*(np.linalg.norm(b)))
+        out = abs((1 - cos_sim)-adj)
+        return out
+
+```
+
+The two function's are very similar, the only change is that in the second function, after calculating the cosine distance, a adjustment factor is taken from the distance and then the abosolute value of that is returned.
+
+For example, as the range for cosine distance sits between [0,2], by using an adjustment factor of 2, we've reveresed the distance metric. In practice we want to obtain a range of results, and not just the closest and further points. So the search function is defined as:
+
+```python
+    def serach_along_axis(self, q, k=None, ef=None, n=5):
+        min_vecotrs = self.search(q,k=k,ef=ef,adj=0)
+        max_vectors = self.search(q,k=k,ef=ef,adj=2)
+
+        min_dist = min_vecotrs[0][1]
+        max_dist = self.vectorized_distance(q,[self.data[x[0]] for x in max_vectors])
+        ...
+        ...
+
+        distance_range = max_dist[0] - min_dist
+        interval = distance_range/n
+        for i in range(0,n-1):
+            adj = min_dist + interval*(i+1)
+```
+
+Alongside k and ef, which are parameters in the traditional HNSW search process, we also define n which dictates the number of interval to devide the search into.
+
+The basic steps are:
+
+1. Find the closest result to your search query using a standard HNSW search
+2. Find the furthest result using an adjustment factor of 2.
+3. Get the range of distances between 1 and 2
+4. Devide that range into `n` intervals and use those intervals as an adjustment factor
+5. Return `k` points from each interval
+
+This process is then repeated for the 2 other axis queries, then once we have all `k * n * 3` vectors, we calculate their correct cosine distance's (no adjustment) from each of the 3 axis, and use this distances to plot the points on a 3D Scatter using Plotly
+
+The main drawback from this approach is that this HNSW funcationality is implemented in Python and not using Weaviate. This means that 2 HNSW graphs will have to be created, the original one in Weaviate, then the vectors are downloaded and an offline HNSW graph is created using python. In the offline graph the `uuid` from Weaviate, and this is used to reference back to Weaviate for other functionality in the website.
+
 ##  Technologies Used
 
 -  Python
