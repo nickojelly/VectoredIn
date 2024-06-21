@@ -79,6 +79,37 @@ The way that this is implemented in this project is by simply adjusting the cosi
 
 ```
 
+The two function's are very similar, the only change is that in the second function, after calculating the cosine distance, a adjustment factor is taken from the distance and then the abosolute value of that is returned.
+
+For example, as the range for cosine distance sits between [0,2], by using an adjustment factor of 2, we've reveresed the distance metric. In practice we want to obtain a range of results, and not just the closest and further points. So the search function is defined as:
+
+```python
+    def serach_along_axis(self, q, k=None, ef=None, n=5):
+        min_vecotrs = self.search(q,k=k,ef=ef,adj=0)
+        max_vectors = self.search(q,k=k,ef=ef,adj=2)
+
+        min_dist = min_vecotrs[0][1]
+        max_dist = self.vectorized_distance(q,[self.data[x[0]] for x in max_vectors])
+        ...
+        ...
+
+        distance_range = max_dist[0] - min_dist
+        interval = distance_range/n
+        for i in range(0,n-1):
+            adj = min_dist + interval*(i+1)
+```
+
+Alongside k and ef, which are parameters in the traditional HNSW search process, we also define n which dictates the number of interval to devide the search into.
+
+The basic steps are:
+
+1. Find the closest result to your search query using a standard HNSW search
+2. Find the furthest result using an adjustment factor of 2.
+3. Get the range of distances between 1 and 2
+4. Devide that range into ```n``` intervals and use those intervals as an adjustment factor
+5. Repeat for other queries
+
+6. 
 ##  Technologies Used
 
 -  Python
