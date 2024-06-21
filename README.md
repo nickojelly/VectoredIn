@@ -109,7 +109,7 @@ The basic steps are:
 4. Devide that range into ```n``` intervals and use those intervals as an adjustment factor
 5. Return ```k``` points from each interval
 
-This process is then repeated for the 2 other axis queries, then once we have all ```k * n * 3``` vectors, we calculate their correct cosine distance's from each of the 3 axis, and use this distances to plot the points on a 3D Scatter using Plotly
+This process is then repeated for the 2 other axis queries, then once we have all ```k * n * 3``` vectors, we calculate their correct cosine distance's (no adjustment) from each of the 3 axis, and use this distances to plot the points on a 3D Scatter using Plotly
 
 
 ##  Technologies Used
