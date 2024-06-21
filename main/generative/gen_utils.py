@@ -241,6 +241,7 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
     return prompt
 
 def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: openai.OpenAI):
+
     print("Starting alignment summary")
     uuid_x, uuid_y, uuid_z = uuid
     text_x, text_y, text_z = text
@@ -304,9 +305,9 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
 # Define a function to call the endpoint and obtain embeddings
 def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts: List[str], rag=False) -> List[List[float]]:
 
-    generate_prompt = """Generate a list of the 5 common skills, 5 common responsiblities, and 5 common technologies for the attached job listings.
+    generate_prompt = f"""Generate a list of the 5 common skills, 5 common responsiblities, and 5 common technologies for the attached job listings.
     Your response should be in the following format, Do Not return anything else only return 1 list of 5 items for each of the following categories:
-    Title: [Common Job Title]
+    Title: {texts}
     Skills: [List of 5 common skills]
     Responsibilities: [List of 5 common responsibilities]
     Technologies: [List of 5 common technologies]
