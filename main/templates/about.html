@@ -86,7 +86,7 @@
                 <h2 class="title is-4">Vector Databases in Weaviate</h2>
                 <p class="mb-4">We won't cover off everything about Vector Databases here, but there is a <a
                         href="https://weaviate.io/blog/what-is-a-vector-database" target="_blank"
-                        rel="noopener noreferrer">good explainer from Weaviate</a>.But let's cover of some of the points
+                        rel="noopener noreferrer">good explainer from Weaviate</a>. But let's cover of some of the points
                     that we need for later on:</p>
                 <div class="box">
                     <h3 class="title is-4">Vectors</h3>
@@ -96,8 +96,8 @@
                 </div>
                 <div class="box">
                     <h3 class="title is-4">Embedding</h3>
-                    <p class="mb-4">An <b>embedding</b> is the process of converting data, in our case, text data about
-                        job listings, into a <b>vector</b> representation that captures the semantic meaning and
+                    <p class="mb-4">An <b>embedding</b> is the process of converting data (in our case text data about
+                        job listings) into a <b>vector</b> representation that captures the semantic meaning and
                         relationships of the data. We do this using the OpenAI embedding model: "text-embedding-3-small"
                     </p>
                 </div>
@@ -110,16 +110,16 @@
 
                     <pre class="mb-4"><code>cos_sim = np.dot(a, b)/(np.linalg.norm(a)*(np.linalg.norm(b)))
 cos_distance =  1 - cos_sim</pre></code>
-<p class="mb-4"> This is what is represented on the X,Y and Z axis of the chart on the main page. We take the <b>vector</b> which is an <b>embedding</b> of the data of a job listing (job title, job description, etc.), as then we calculate the distance from each of the <b>embeddings</b> for the axis (Data Scientist, Accountant, etc.), and using these distance we can plot it on a 3 axis plot.</p>
+<p class="mb-4"> This is what is represented on the X,Y and Z axis of the chart on the main page. We take the <b>vector</b> which is an <b>embedding</b> of the data for a single job listing and then we calculate the distance from each of the <b>embeddings</b> for the axis (Data Scientist, Accountant, etc.). Then using these distance we can plot the cosine distances on a 3 axis plot.</p>
                 </div>
             </div>
             <div class="box">
                 <h2 class="title is-4">Retrieval Augmented Generation (RAG)</h2>
-                <p class="mb-4">RAG is a technique that enhances large language model's by providing additional context when querying. In the context of our project here, RAG add's in an additional step between our provided axis and there embedding. Here's a quick representation of how this work's in this application. </p>
+                <p class="mb-4">RAG is a technique that enhances large language models by providing additional context when querying. In the context the project, RAG adds an additional step between our provided axis and their embedding. Here's a quick representation of how this works in this application. </p>
                 <figure class="image">
                     <img src="{% static 'img/RAG_diagram.png' %}" alt="RAG Diagram">
                 </figure>
-                <p class="mb-4"> Here we can see that when we are using RAG, after we generate our initial vector embedding of our axis ("Data Scientist"), we search our vector database in Weaviate find similar results, summarize those results, embed that summary, and then use that embedding to calculate our cosine distances.</p>
+                <p class="mb-4"> This image show that when using RAG, after we generate our initial vector embedding of our axis ("Data Scientist"), Weaviate is used to search our vector database to find similar results, summarize those results, embed that summary, and then use that embedding to calculate our cosine distances.</p>
             </div>
     </section>
 </body>
