@@ -55,6 +55,30 @@ One of the challenges we're faced with in this project is that we want to be abl
 
 ### BestWorst Search
 
+The goal for best worst search is we need a way to adjust our HNSW search algorithm to be able to control what distance points we are looking for, and return a points across that range. Here's a quick diagram to explain the funcationality we need:
+
+<img src="./static/img/single_axis_diagram.png" alt="Single Axis HNSw" width="800">
+
+In this diagram we can see that we get a range of results with varying cosine distances, and will provide us with an interseting axis to plot of data on.
+
+The way that this is implemented in this project is by simply adjusting the cosine distance function at query time, to affect the distance metric that HNSW serach is trying to minimize.
+
+```python
+    def cosine_distance(self, a, b):
+        #Cosine distance is 1 - cosine similarity
+        # cos(theta) = (a . b) / (||a|| ||b||)
+        cos_sim = np.dot(a, b)/(np.linalg.norm(a)*(np.linalg.norm(b)))
+        return 1 - cos_sim
+
+    def adjustable_distance(self, a, b, adj):
+        #Same as above but we can vary the distance function
+        #Cosine distance range is [0, 2]
+        cos_sim = np.dot(a, b)/(np.linalg.norm(a)*(np.linalg.norm(b)))
+        out = abs((1 - cos_sim)-adj)
+        return out
+
+```
+
 ##  Technologies Used
 
 -  Python
