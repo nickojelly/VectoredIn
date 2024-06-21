@@ -16,7 +16,8 @@ VectoredIn is a web application that allows users to explore and gain insights f
 
 Here's an example of the 3d Scatterplot.
 
-![Sample Image](./static/img/Plot_example.png)
+<img src="./static/img/Plot_example.png" alt="3d Plot" width="800">
+
 
 On the left hand side is where the 3 axis are set, which can be adjusted and the plot updated. Below that show's the linear correlation between the 2d permutations between the 3 axis.
 
@@ -24,11 +25,31 @@ On the left hand side is where the 3 axis are set, which can be adjusted and the
 
 RAG is a technique that enhances large language model's by providing additional context when querying. In the context this project, RAG add's in an additional step between our provided axis and their embedding. Here's a quick representation of how this work's in this application:
 
-![Sample Image](./static/img/RAG_diagram.png)
+<img src="./static/img/RAG_diagram.png" alt="RAG Diagram" width="800">
 
 ### Plot Summary
 
-![Sample Image](./static/img/plot_summary.png)
+
+<img src="./static/img/plot_summary.png" alt="Plot Summary" width="800">
+
+This plot summary is a general summary of the job listings and summarization of the similarities and differences. It works in essentially 3 steps:
+
+1. The closest 5 similar job listings are taken and then summarised using Weaviates generative serach.
+2. These are then aggregating into a meta-analysis prompt using OpenAI 3.5-turbo model.
+3.  This is then output as the inner html to the box.
+
+### Axis Alignment
+
+Selecting any point displayed in the 3D Scatter on the main page, a summary comapring the alignment with the 3 provided axis can be generated using and OpenAI call with the RAG queries.
+
+<img src="./static/img/example.png" alt="Axis Alignemnt" width="800">
+
+The progress bars up the top are epresent the cosine similarirty between a a job listing point selected on the chart and the 3 axis supplied. The cosine similarity here has been normalised to the range of the range of the cosine similarites in the chart. The raw description can also be access via the box at the bottom of the page.
+
+
+## Highlights
+
+### BestWorst Search
 
 ##  Technologies Used
 
@@ -40,9 +61,6 @@ RAG is a technique that enhances large language model's by providing additional 
 -  Hierarchical Navigable Small World (HNSW) algorithm for efficient similarity search
 -  Weaviate for vector storage and retrieval
 
-## Highlights
-
-### BestWorst Search
 
 ##  Features
 
