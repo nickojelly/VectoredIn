@@ -3,3 +3,6 @@ keys.py
 *.pyc
 *.pkl
 *.fth
+/notebooks
+/cookies
+/testing

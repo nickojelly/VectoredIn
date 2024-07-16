@@ -258,7 +258,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
         pprint(f"prompt generated : {prompt}")
         prompts.append(prompt)
 
-        listings = client.collections.get("JobListings")
+        listings = client.collections.get("ListingsV2")
         job_weaviate = listings.query.fetch_object_by_id(uuid[i], include_vector=True)
         single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=3, grouped_task=prompt)
         pprint(f"summary query generated : {single_query}")
@@ -292,7 +292,7 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
 
     pprint(f"prompt generated : {prompt}")
 
-    listings = client.collections.get("JobListings")
+    listings = client.collections.get("ListingsV2")
 
     job_weaviate = listings.query.fetch_object_by_id(uuid, include_vector=True)
 
@@ -315,7 +315,7 @@ def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts
     """
     if rag:
 
-        listings =  weaviate_client.collections.get("JobListings")
+        listings =  weaviate_client.collections.get("ListingsV2")
         try:
             response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5).generated
         except Exception as e:

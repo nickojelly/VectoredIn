@@ -8,7 +8,8 @@ class MainConfig(AppConfig):
     def ready(self):
         from .models import QueryEmbedding
         # Call the initialization function from utils
+        initialize_df()
         hnsw_intialize()
         initialize_openai_client()
         initialize_weaviate_client()
-        initialize_df()
+        

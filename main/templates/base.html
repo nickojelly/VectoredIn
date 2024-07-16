@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-700LG6TF98"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -125,6 +126,77 @@
         .tooltip-modal-card .content p {
             margin-bottom: 1rem;
         }
+
+        .skeleton-box {
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            animation: skeleton-loading 1s infinite alternate;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-color: #f0f0f0;
+            }
+
+            100% {
+                background-color: #e0e0e0;
+            }
+        }
+
+        .skeleton-item {
+            margin-bottom: 15px;
+        }
+
+        .ner-company {
+            background-color: #ffcccb;
+            color: #8b0000;
+        }
+
+        .ner-methods {
+            background-color: #e6f3ff;
+            color: #0066cc;
+        }
+
+        .ner-tools {
+            background-color: #e6ffe6;
+            color: #006600;
+        }
+
+        .ner-experience {
+            background-color: #fff5e6;
+            color: #cc7000;
+        }
+
+        .ner-level {
+            background-color: #e6e6ff;
+            color: #000066;
+        }
+
+        .ner-remote {
+            background-color: #f0f0f0;
+            color: #4d4d4d;
+        }
+
+        .ner-responsability {
+            background-color: #ffe6ff;
+            color: #660066;
+        }
+
+        .ner-title {
+            background-color: #e6fffa;
+            color: #006666;
+        }
+
+        .ner-qualification {
+            background-color: #fff0f5;
+            color: #8b008b;
+        }
+        .tab-pane {
+    display: none;
+  }
+  .tab-pane.is-active {
+    display: block;
+  }
     </style>
 </head>
 
@@ -215,7 +287,7 @@
                                         </p>
                                         <p class="control">
                                             <input class="input " type="number" name="k_value" placeholder="10"
-                                                value="10" min="1" max="30" step="1">
+                                                value="10" min="1" max="1000" step="1">
                                         </p>
                                     </div>
                                 </div>
@@ -228,7 +300,7 @@
                                         </p>
                                         <p class="control">
                                             <input class="input " type="number" name="n_value" placeholder="5" value="5"
-                                                min="3" max="9" step="1">
+                                                min="3" max="50" step="1">
                                         </p>
                                     </div>
                                 </div>
@@ -256,50 +328,48 @@
                                 <i class="fas fa-info-circle"></i>
                             </span>
                         </h2>
-                        <div class="progress-bars">
-                            <div class="progress-bar">
-                                <label id="xy-correlation-label" for="xy-correlation"></label>
-                                <progress id="xy-correlation" class="progress" value="0" max="2" title=""></progress>
+                        <div id="correlation-skeleton" class="is-loading">
+                            <div class="skeleton-item">
+                                <div class="skeleton-box" style="width: 100px; height: 20px; margin-bottom: 5px;"></div>
+                                <div class="skeleton-box" style="width: 100%; height: 20px;"></div>
                             </div>
-                            <div class="progress-bar">
-                                <label id="xz-correlation-label" for="xz-correlation"></label>
-                                <progress id="xz-correlation" class="progress" value="0" max="2" title=""></progress>
+                            <div class="skeleton-item">
+                                <div class="skeleton-box" style="width: 100px; height: 20px; margin-bottom: 5px;"></div>
+                                <div class="skeleton-box" style="width: 100%; height: 20px;"></div>
                             </div>
-                            <div class="progress-bar">
-                                <label id="yz-correlation-label" for="yz-correlation"></label>
-                                <progress id="yz-correlation" class="progress" value="0" max="2" title=""></progress>
+                            <div class="skeleton-item">
+                                <div class="skeleton-box" style="width: 100px; height: 20px; margin-bottom: 5px;"></div>
+                                <div class="skeleton-box" style="width: 100%; height: 20px;"></div>
+                            </div>
+                        </div>
+                        <div id="correlation-content" style="display: none;">
+                            <div class="progress-bars">
+                                <div class="progress-bar">
+                                    <label id="xy-correlation-label" for="xy-correlation"></label>
+                                    <progress id="xy-correlation" class="progress" value="0" max="2"
+                                        title=""></progress>
+                                </div>
+                                <div class="progress-bar">
+                                    <label id="xz-correlation-label" for="xz-correlation"></label>
+                                    <progress id="xz-correlation" class="progress" value="0" max="2"
+                                        title=""></progress>
+                                </div>
+                                <div class="progress-bar">
+                                    <label id="yz-correlation-label" for="yz-correlation"></label>
+                                    <progress id="yz-correlation" class="progress" value="0" max="2"
+                                        title=""></progress>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="column is-two-thirds">
                     <div class="box">
-                        <div id="plot-container"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="box mb-5">
-                <div class="is-collapsible">
-                    <div class="is-collapsible-trigger">
-                        <h2 class="title is-4">Plot Summary
-                            <button id="generate-summary-btn" class="button is-primary is-small">Generate</button>
-                            <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
-                                data-tooltip="Click to view the plot summary">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                        </h2>
-                        <a class="is-chevron">
-                            <span class="icon is-small">
-                                <i class="fas fa-chevron-down"></i>
-                            </span>
-                        </a>
-                    </div>
-                    <div class="is-collapsible-content" style="display: none;">
-                        <div class="content">
-                            <p id="plot-summary"> Click generate above to generate a plot summary
-                            </p>
+                        <div id="plot-container">
+                            <!-- Skeleton loader for the plot -->
+                            <div id="plot-skeleton" class="is-loading">
+                                <div class="skeleton-box" style="width: 100%; height: 400px;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -307,43 +377,79 @@
         </div>
         <div class="container">
             <div class="box mb-5">
-                <!-- <label for="summary-box"></label> -->
-                <div id="summary-box">
-                    <div class="box">
-                        <h4 class="title is-4" id="summary-title">Click on a point to learn more</h4>
+                <div class="tabs">
+                    <ul>
+                        <li class="is-active"><a data-tab="point-info">Point Information</a></li>
+                        <li><a data-tab="plot-info">Plot Info</a></li>
+                        <li><a data-tab="related-jobs">Related Jobs</a></li>
+                    </ul>
+                </div>
 
-                        <h5 class="subtitle is-5" id="summary-company"></h5>
-                        <div class="progress-bars">
-                            <div class="progress-bar">
-                                <label for="x-progress" id="x-axis-label"></label>
-                                <progress id="x-progress" class="progress is-primary" value="0" max="100"></progress>
+                <div id="tab-content">
+                    <div class="tab-pane is-active" id="point-info">
+                        <div id="summary-box">
+                            <div class="box">
+                                <h4 class="title is-4" id="summary-title">Click on a point to learn more</h4>
+                                <h5 class="subtitle is-5" id="summary-company"></h5>
+                                <div class="progress-bars">
+                                    <div class="progress-bar">
+                                        <label for="x-progress" id="x-axis-label"></label>
+                                        <progress id="x-progress" class="progress is-primary" value="0"
+                                            max="100"></progress>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <label for="y-progress" id="y-axis-label"></label>
+                                        <progress id="y-progress" class="progress is-info" value="0"
+                                            max="100"></progress>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <label for="z-progress" id="z-axis-label"></label>
+                                        <progress id="z-progress" class="progress is-success" value="0"
+                                            max="100"></progress>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="progress-bar">
-                                <label for="y-progress" id="y-axis-label"></label>
-                                <progress id="y-progress" class="progress is-info" value="0" max="100"></progress>
+                            <div class="box">
+                                <h4 class="title is-4">Alignment Summary
+                                    <button id="generate-alignment-btn"
+                                        class="button is-primary is-small">Generate</button>
+                                    <span id="alignment-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
+                                        data-tooltip="Provides information on the selected point in the plot above,&#13;click for more info">
+                                        <i class="fas fa-info-circle"></i>
+                                    </span>
+                                </h4>
+                                <div id="alignment-summary"></div>
                             </div>
-                            <div class="progress-bar">
-                                <label for="z-progress" id="z-axis-label"></label>
-                                <progress id="z-progress" class="progress is-success" value="0" max="100"></progress>
+                            <div class="box">
+                                <div class="is-collapsible">
+                                    <div class="is-collapsible-trigger">
+                                        <h4 class="title is-4">Job Description</h4>
+                                        <a class="is-chevron">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-chevron-down"></i>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="is-collapsible-content" style="display: none;">
+                                        <div class="content">
+                                            <p id="summary-description"></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                     </div>
-                    <div class="box">
-                        <h4 class="title is-4">Alignment Summary
-                            <button id="generate-alignment-btn" class="button is-primary is-small">Generate</button>
-                            <span id="alignment-tooltip-icon" class="icon has-tooltip-right tooltip-icon" data-tooltip="Provides information on the selected point in the plot above,&#13;
-                            click for more info">
-                                <i class="fas fa-info-circle"></i>
-                            </span>
-                        </h4>
-
-                        <div id="alignment-summary"></div>
-                    </div>
-                    <div class="box">
+                    <div class="tab-pane" id="plot-info">
                         <div class="is-collapsible">
                             <div class="is-collapsible-trigger">
-                                <h4 class="title is-4">Job Description</h4>
+                                <h2 class="title is-4">Plot Summary
+                                    <button id="generate-summary-btn"
+                                        class="button is-primary is-small">Generate</button>
+                                    <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
+                                        data-tooltip="Click to view the plot summary">
+                                        <i class="fas fa-info-circle"></i>
+                                    </span>
+                                </h2>
                                 <a class="is-chevron">
                                     <span class="icon is-small">
                                         <i class="fas fa-chevron-down"></i>
@@ -352,14 +458,18 @@
                             </div>
                             <div class="is-collapsible-content" style="display: none;">
                                 <div class="content">
-                                    <p id="summary-description"></p>
+                                    <p id="plot-summary"> Click generate above to generate a plot summary</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="tab-pane" id="related-jobs">
+                        <!-- Related jobs content goes here -->
+                    </div>
                 </div>
             </div>
         </div>
+
         <!-- Tooltip Modal -->
         <div class="modal" id="tooltip-modal">
             <div class="modal-background"></div>
@@ -613,6 +723,32 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             }
         }
 
+        function spinPlot() {
+            var frames = [];
+            var n = 100; // number of frames
+            for (var i = 0; i < n; i++) {
+                frames.push({
+                    layout: {
+                        scene: {
+                            camera: {
+                                eye: {
+                                    x: 1.25 * Math.cos(2 * Math.PI * i / n),
+                                    y: 1.25 * Math.sin(2 * Math.PI * i / n),
+                                    z: 1.25
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            Plotly.animate('plot-container', frames, {
+                frame: { duration: 30, redraw: false },
+                transition: { duration: 0 },
+                mode: 'immediate'
+            });
+        }
+
         // Function to update the progress bar labels and values
         function updateProgressBars() {
             var plot = document.getElementById('plot-container');
@@ -672,9 +808,15 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
             .then(response => response.json())
             .then(data => {
+                // Hide skeleton and show actual plot
+                document.getElementById('plot-skeleton').style.display = 'none';
+                document.getElementById('plot-container').style.display = 'block';
                 // Initialize the plot with the initial data and axis labels
                 console.log('Received data.layout:', data.layout);
                 Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout);
+                // Hide skeleton and show actual correlation content
+                document.getElementById('correlation-skeleton').style.display = 'none';
+                document.getElementById('correlation-content').style.display = 'block';
 
                 // Update the progress bars
                 updateProgressBars();
@@ -685,6 +827,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 var xMax = plot.layout.scene.xaxis.range[1];
 
                 console.log(plot.data)
+                spinPlot();
 
                 // Get the plot data
                 var plotData = plot.data;
@@ -734,12 +877,12 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                                 // Update the summary box with the received data
                                 document.getElementById('summary-title').textContent = data.summary.title;
                                 document.getElementById('summary-company').textContent = data.summary.company;
-                                document.getElementById('summary-description').textContent = data.summary.description;
+                                document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
 
                                 // Update the progress bars with the received x, y, z values
                                 document.getElementById('x-progress').value = xMax - data.summary.x;
-                                document.getElementById('y-progress').value = xMax - data.summary.y;
-                                document.getElementById('z-progress').value = xMax - data.summary.z;
+                                document.getElementById('y-progress').value = yMax - data.summary.y;
+                                document.getElementById('z-progress').value = zMax - data.summary.z;
 
                                 // Collapse the job description by default
                                 var collapsible = document.querySelector('.is-collapsible');
@@ -1021,6 +1164,23 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 });
             });
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+  const tabs = document.querySelectorAll('.tabs li');
+  const tabContentPanes = document.querySelectorAll('.tab-pane');
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(item => item.classList.remove('is-active'));
+      tabContentPanes.forEach(pane => pane.classList.remove('is-active'));
+
+      tab.classList.add('is-active');
+      const target = tab.querySelector('a').getAttribute('data-tab');
+      document.getElementById(target).classList.add('is-active');
+    });
+  });
+});
+
 
 
     </script>

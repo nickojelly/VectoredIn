@@ -17,7 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 from pprint import pprint
 import numpy as np
 from .models import JobPosting, QueryEmbedding  # Import the JobPosting model
-
+import re
+import textwrap
 logger = logging.getLogger(__name__)
 
 def about(request):
@@ -95,6 +96,7 @@ def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
 
     distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
     distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
+    print('Updated distancedf, shape:', distance_df.shape)
 
 
     return distance_df
@@ -108,10 +110,14 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
         distance_df = pd.read_feather(distance_df_path)
     # distance_df = distance_df.sample(n=10)
+    # distance_df['sum_dist'] = distance_df['x_dist'] + distance_df['y_dist'] + distance_df['z_dist']
+    # distance_df = distance_df.sort_values(by='sum_dist', ascending=False)
     x = distance_df['x_dist'].values
     y = distance_df['y_dist'].values
     z = distance_df['z_dist'].values
     custom_data = distance_df.wv_uuid.values
+    # print(custom_data)
+
     global_min = min(x.min(), y.min(), z.min())
     global_max = max(x.max(), y.max(), z.max())
 
@@ -128,7 +134,7 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
             size=8,
             color=x+y+z,
             colorscale='Viridis',
-            opacity=0.8,
+            opacity=1,
             colorbar=dict(title='Semantic Distance')
         ),
         text=distance_df['title']+' | '+distance_df['company_name'],
@@ -203,6 +209,63 @@ def plot_view(request):
 
     return render(request, "base.html", context)
 
+import re
+
+def parse_asterisks(text):
+    parts = text.split('**')
+    for i in range(1, len(parts), 2):
+        parts[i] = f'<strong>{parts[i]}</strong>'
+    return ''.join(parts)
+
+
+def apply_formatting(text):
+    # Handle bold text
+    # text = re.sub(r' \n', r'\n', text)
+    # text = re.sub('\*\*(\s\w.*?)\*\*', r'<strong>AHHHHH \1 AHHHHH</strong>', text)
+    text = parse_asterisks(text)
+
+    print(text)
+    
+    # Split text into sections
+    sections = re.split(r'\n\s*\n', text)
+    
+    formatted_sections = []
+    for section in sections:
+        lines = section.split('\n')
+        if all(line.strip().startswith('•') for line in lines if line.strip()):
+            # This is a list
+            list_items = [f'<li>{line.strip()[1:].strip()}</li>' for line in lines if line.strip()]
+            formatted_sections.append(f'<ul>{"".join(list_items)}</ul>')
+        else:
+            # This is a regular paragraph or a header
+            formatted_lines = []
+            for line in lines:
+                line = line.strip()
+                if line:
+                    if line.isupper():
+                        formatted_lines.append(f'<h3>{line}</h3>')
+                    else:
+                        formatted_lines.append(f'<p>{line}</p>')
+            formatted_sections.append(''.join(formatted_lines))
+    
+    return ''.join(formatted_sections)
+
+
+
+def format_description_with_ner(text, entities):
+    formatted_text = text
+    offset = 0
+    print(f"Entities = {entities}")
+    print(f"text = {text}")
+    for entity in sorted(entities, key=lambda x: x['start'], reverse=True):
+        start = entity['start'] + offset
+        end = entity['end'] + offset
+        span = f'<span class="ner-{entity["label"].lower()}">{formatted_text[start:end]}</span>'
+        formatted_text = formatted_text[:start] + span + formatted_text[end:]
+        # offset += len(span) - (end - start)
+    
+    return formatted_text
+
 @csrf_exempt
 def get_point_summary(request):
     if request.method == 'POST':
@@ -214,12 +277,41 @@ def get_point_summary(request):
 
         job_listing = listing_df.query('wv_uuid == @uuid')
 
+        formatted_text = format_description_with_ner(job_listing.iloc[0]['text'], job_listing.iloc[0]['annotations'])
+
+        final_formatted_text = apply_formatting(formatted_text)
+
+        text = job_listing.iloc[0]['text']
+
+        raw_text = repr(text)
+        wrapped_text = textwrap.fill(raw_text, width=100)
+        print(f"Raw text (wrapped):\n{wrapped_text}")
+        # final_formatted_text = formatted_text
+
+        # raw_text = repr(re.sub(' \\n', '\n', text))
+        raw_text = repr(re.sub(r'\*\*(\s\w.*?)\*\*', '<strong>AHHHHH \1 AHHHHH</strong>', text))
+        wrapped_text = textwrap.fill(raw_text, width=100)
+        print(f"Raw text (wrapped):\n{wrapped_text}")
+
+        raw_text = repr(re.sub(r' \n', r'\n', text))
+        wrapped_text = textwrap.fill(final_formatted_text, width=100)
+        print(f"formatted text (wrapped):\n{wrapped_text}")
+
+
+
+        print(f"Formatted text = {formatted_text}")
+
+        print(f"Final formatted text = {final_formatted_text}")
+
+        print(f"Job listing = {uuid}")
+
         if not job_listing.empty:
             summary_data = {
                 'title': job_listing.iloc[0]['title'],
                 'company': job_listing.iloc[0]['company_name'],
                 'location': job_listing.iloc[0]['location'],
                 'description': job_listing.iloc[0]['description'],
+                'formatted_description': final_formatted_text ,
                 'x': x,
                 'y': y,
                 'z': z

@@ -171,17 +171,21 @@ class HNSW(object):
         self._enter_point = idx
 
 
-    def serach_along_axis(self, q, k=None, ef=None, n=5):
+    def serach_along_axis(self, q, k=None, ef=100, n=5):
         ### Search along the axis of the query, returning k vectors at n intervals along the axis
         #Start with finding the minimum and maximum distance along the axis
         #Then divide the axis into n intervals and search for the closest vector in each interval
         full_vector_list = {}
         min_vecotrs = self.search(q,k=k,ef=ef,adj=0)
         max_vectors = self.search(q,k=k,ef=ef,adj=2)
+        # print(f)
 
         min_dist = min_vecotrs[0][1]
-        print(f"min_dist: {min_dist}, {min_vecotrs[0]}")
+        # print(self.data.columns)
+        print(f"min_dist: {min_dist}, {min_vecotrs[0]}, {self.data[min_vecotrs[0][0]]}")
         full_vector_list[0] = min_vecotrs
+
+        print()
 
         max_dist = self.vectorized_distance(q,[self.data[x[0]] for x in max_vectors])
         print(f"max_vectors = {max_vectors}")
@@ -190,7 +194,7 @@ class HNSW(object):
 
         distance_range = max_dist[0] - min_dist
         interval = distance_range/n
-        for i in range(0,n-1):
+        for i in range(1,n):
             adj = min_dist + interval*(i+1)
             search_result = self.search(q,k=k,ef=ef,adj=adj)
             original_vecotrs = [self.data[x[0]] for x in search_result]
@@ -200,10 +204,12 @@ class HNSW(object):
         remapped_dict = {} 
         vector_dict = {}
         for interval, idx in full_vector_list.items():
+            # print(f"interval: {idx}")
             new_dict = [(self.df['wv_uuid'].iloc[i[0]],i[1]) for i in idx]
+            # print(f"new_dict: {new_dict}")
             remapped_dict[interval] = new_dict
             vector_dict.update({self.df['wv_uuid'].iloc[i[0]]:self.data[i[0]] for i in idx})
-        
+        # print
         return vector_dict
 
     def search(self, q, k=None, ef=None, adj=0):
