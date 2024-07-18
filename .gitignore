@@ -6,3 +6,4 @@ keys.py
 /notebooks
 /cookies
 /testing
+*.npy

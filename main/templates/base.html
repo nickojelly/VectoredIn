@@ -191,12 +191,41 @@
             background-color: #fff0f5;
             color: #8b008b;
         }
+
         .tab-pane {
-    display: none;
-  }
-  .tab-pane.is-active {
-    display: block;
-  }
+            display: none;
+        }
+
+        .tab-pane.is-active {
+            display: block;
+        }
+
+        .subtab-pane {
+            display: none;
+        }
+
+        .subtab-pane.is-active {
+            display: block;
+        }
+
+        .tabs.is-boxed {
+            margin-bottom: 1rem;
+        }
+
+        .tabs.is-boxed ul {
+            border-bottom: 1px solid #dbdbdb;
+        }
+
+        .tabs.is-boxed a {
+            border: 1px solid transparent;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tabs.is-boxed li.is-active a {
+            background-color: white;
+            border-color: #dbdbdb;
+            border-bottom-color: transparent !important;
+        }
     </style>
 </head>
 
@@ -409,66 +438,72 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="box">
-                                <h4 class="title is-4">Alignment Summary
-                                    <button id="generate-alignment-btn"
-                                        class="button is-primary is-small">Generate</button>
-                                    <span id="alignment-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
-                                        data-tooltip="Provides information on the selected point in the plot above,&#13;click for more info">
-                                        <i class="fas fa-info-circle"></i>
-                                    </span>
-                                </h4>
-                                <div id="alignment-summary"></div>
+                        </div>
+
+                        <div class="tabs is-boxed">
+                            <ul>
+                                <li class="is-active"><a data-subtab="alignment-summary">Alignment Summary</a></li>
+                                <li><a data-subtab="description">Description</a></li>
+                                <li><a data-subtab="related-roles">Related Roles</a></li>
+                            </ul>
+                        </div>
+
+                        <div id="subtab-content">
+                            <div class="subtab-pane is-active" id="alignment-summary">
+                                <div class="box">
+                                    <h4 class="title is-4">Alignment Summary
+                                        <button id="generate-alignment-btn"
+                                            class="button is-primary is-small">Generate</button>
+                                        <span id="alignment-tooltip-icon" class="icon has-tooltip-right tooltip-icon"
+                                            data-tooltip="Provides information on the selected point in the plot above,&#13;click for more info">
+                                            <i class="fas fa-info-circle"></i>
+                                        </span>
+                                    </h4>
+                                    <div id="alignment-summary"></div>
+                                </div>
                             </div>
-                            <div class="box">
-                                <div class="is-collapsible">
-                                    <div class="is-collapsible-trigger">
-                                        <h4 class="title is-4">Job Description</h4>
-                                        <a class="is-chevron">
-                                            <span class="icon is-small">
-                                                <i class="fas fa-chevron-down"></i>
-                                            </span>
-                                        </a>
+
+                            <div class="subtab-pane" id="description">
+                                <div class="box">
+                                    <h4 class="title is-4">Job Description</h4>
+                                    <div class="content">
+                                        <p id="summary-description"></p>
                                     </div>
-                                    <div class="is-collapsible-content" style="display: none;">
-                                        <div class="content">
-                                            <p id="summary-description"></p>
-                                        </div>
+                                </div>
+                            </div>
+                            <div class="subtab-pane" id="related-roles">
+                                <div class="box">
+                                    <h4 class="title is-4">Related Roles</h4>
+                                    <div id="related-roles-content">
+                                        <!-- Content will be dynamically populated -->
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="tab-pane" id="plot-info">
-                        <div class="is-collapsible">
-                            <div class="is-collapsible-trigger">
-                                <h2 class="title is-4">Plot Summary
-                                    <button id="generate-summary-btn"
-                                        class="button is-primary is-small">Generate</button>
-                                    <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
-                                        data-tooltip="Click to view the plot summary">
-                                        <i class="fas fa-info-circle"></i>
-                                    </span>
-                                </h2>
-                                <a class="is-chevron">
-                                    <span class="icon is-small">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="is-collapsible-content" style="display: none;">
-                                <div class="content">
-                                    <p id="plot-summary"> Click generate above to generate a plot summary</p>
-                                </div>
+                        <div class="box">
+                            <h2 class="title is-4">Plot Summary
+                                <button id="generate-summary-btn" class="button is-primary is-small">Generate</button>
+                                <span id="plot-summary-icon" class="icon has-tooltip-right tooltip-icon"
+                                    data-tooltip="Click to view the plot summary">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </h2>
+                            <div class="content">
+                                <p id="plot-summary">Click generate above to generate a plot summary</p>
                             </div>
                         </div>
                     </div>
+
                     <div class="tab-pane" id="related-jobs">
                         <!-- Related jobs content goes here -->
                     </div>
                 </div>
             </div>
         </div>
+
 
         <!-- Tooltip Modal -->
         <div class="modal" id="tooltip-modal">
@@ -1166,20 +1201,27 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-  const tabs = document.querySelectorAll('.tabs li');
-  const tabContentPanes = document.querySelectorAll('.tab-pane');
+            const tabs = document.querySelectorAll('.tabs:not(.is-boxed) li');
+            const tabContentPanes = document.querySelectorAll('.tab-pane');
+            const subtabs = document.querySelectorAll('.tabs.is-boxed li');
+            const subtabContentPanes = document.querySelectorAll('.subtab-pane');
 
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(item => item.classList.remove('is-active'));
-      tabContentPanes.forEach(pane => pane.classList.remove('is-active'));
+            function activateTab(tabList, contentPanes, dataAttribute) {
+                tabList.forEach((tab) => {
+                    tab.addEventListener('click', () => {
+                        tabList.forEach(item => item.classList.remove('is-active'));
+                        tab.classList.add('is-active');
+                        const target = tab.querySelector('a').getAttribute(dataAttribute);
+                        contentPanes.forEach(pane => {
+                            pane.classList.toggle('is-active', pane.id === target);
+                        });
+                    });
+                });
+            }
 
-      tab.classList.add('is-active');
-      const target = tab.querySelector('a').getAttribute('data-tab');
-      document.getElementById(target).classList.add('is-active');
-    });
-  });
-});
+            activateTab(tabs, tabContentPanes, 'data-tab');
+            activateTab(subtabs, subtabContentPanes, 'data-subtab');
+        });
 
 
 
