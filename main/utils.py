@@ -8,6 +8,9 @@ import weaviate
 from typing import List
 from .keys import set_env
 # Define a module-level variable to store the hnsw_obj instance
+# from .models import JobPosting, QueryEmbedding, JobListing
+from tqdm import tqdm
+import json
 hnsw_obj: hnsw_python.HNSW = None
 
 def hnsw_intialize() -> hnsw_python.HNSW:
@@ -55,9 +58,40 @@ def initialize_df() -> pd.DataFrame:
     df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'postings_w_embeddings_v2.fth')
 
     listing_df = pd.read_feather(df_path)
+    print(f"listing_df initialized")
+
     return listing_df 
     
 weaviate_client = None  
+
+from django.db import transaction
+
+def initialize_data(**kwargs):
+    from .models import JobListing
+    df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'postings_w_embeddings_v2.fth')
+    listing_df = pd.read_feather(df_path)
+    print(f"Starting to create JobListing objects")
+    JobListing.objects.all().delete()
+    
+    job_listings = []
+    for _, row in tqdm(listing_df.iterrows()):
+        print()
+        job_listings.append(JobListing(
+            job_id=int(row['job_id']),
+            wv_uuid=row['wv_uuid'],
+            company_name=row['company_name'],
+            company_id=int(row['company_id']),
+            title=row['title'],
+            text=row['text'],
+            annotations=json.dumps(row['annotations'].tolist()),
+            vector=json.dumps(row['vector'].tolist())
+        ))
+    
+    with transaction.atomic():
+        JobListing.objects.bulk_create(job_listings, ignore_conflicts=True)
+    
+    print(f"Created {len(job_listings)} JobListing objects")
+
 
 def initialize_weaviate_client() :
     global weaviate_client  # Declare that you're modifying the global variable

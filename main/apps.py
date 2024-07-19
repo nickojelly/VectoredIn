@@ -1,21 +1,16 @@
 from django.apps import AppConfig
-from django.utils.functional import lazy
-import pandas as pd
+from .utils import hnsw_intialize, initialize_openai_client, initialize_df, initialize_weaviate_client, initialize_data
+from django.db.models.signals import post_migrate
+
 class MainConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'main'
 
     def ready(self):
-        from .utils import (
-            hnsw_initialize, 
-            initialize_openai_client, 
-            initialize_df, 
-            initialize_weaviate_client
-        )
-        
-        # Use lazy loading for initializations
-        self.get_df = lazy(initialize_df, pd.DataFrame)
-        self.get_hnsw = lazy(hnsw_initialize, object)
-        self.get_openai_client = lazy(initialize_openai_client, object)
-        self.get_weaviate_client = lazy(initialize_weaviate_client, object)
-
+        from .models import QueryEmbedding, JobListing
+        # Call the initialization function from utils
+        initialize_df()
+        hnsw_intialize()
+        initialize_openai_client()
+        initialize_weaviate_client()
+        post_migrate.connect(initialize_data, sender=self)

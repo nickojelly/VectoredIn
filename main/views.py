@@ -16,7 +16,7 @@ from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
 from pprint import pprint
 import numpy as np
-from .models import JobPosting, QueryEmbedding  # Import the JobPosting model
+from .models import JobPosting, QueryEmbedding, JobListing  # Import the JobPosting model
 import re
 import textwrap
 logger = logging.getLogger(__name__)
@@ -58,11 +58,10 @@ def vectorize_query_db(text, rag=False):
         # If the query embedding doesn't exist, create a new one
         vector,_ = gen_utils.vectorize(openai_client,weaviate_client, text)
         vector_rag, rag_query = gen_utils.vectorize(openai_client,weaviate_client, text, rag=True)
-        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector),rag_query=rag_query, rag_query_embedding=json.dumps(vector_rag) )
+        query_embedding = QueryEmbedding(query=text, query_embedding=json.dumps(vector),rag_query=rag_query, rag_query_embedding=json.dumps(vector_rag))
         query_embedding.save()
     else:
         # If the query embedding exists, retrieve the vectors
- 
         if rag:
             vector = np.array(json.loads(query_embedding.rag_query_embedding))
         else:
@@ -275,13 +274,22 @@ def get_point_summary(request):
         y = point_data['y']
         z = point_data['z']
 
-        job_listing = listing_df.query('wv_uuid == @uuid')
+        job_listing = JobListing.objects.filter(wv_uuid = uuid).first()
 
-        formatted_text = format_description_with_ner(job_listing.iloc[0]['text'], job_listing.iloc[0]['annotations'])
+        # job_listing = listing_df.query('wv_uuid == @uuid')
+        text = job_listing.text
+        annotations = json.loads(job_listing.annotations)
+        title = job_listing.title
+        company_name = job_listing.company_name
+
+
+        print(f"Annotations = {annotations}, type {type(annotations)}, text = {text}")
+
+        formatted_text = format_description_with_ner(text, annotations)
 
         final_formatted_text = apply_formatting(formatted_text)
 
-        text = job_listing.iloc[0]['text']
+        # text = job_listing.iloc[0]['text']
 
         raw_text = repr(text)
         wrapped_text = textwrap.fill(raw_text, width=100)
@@ -305,20 +313,20 @@ def get_point_summary(request):
 
         print(f"Job listing = {uuid}")
 
-        if not job_listing.empty:
-            summary_data = {
-                'title': job_listing.iloc[0]['title'],
-                'company': job_listing.iloc[0]['company_name'],
-                'location': job_listing.iloc[0]['location'],
-                'description': job_listing.iloc[0]['description'],
-                'formatted_description': final_formatted_text ,
-                'x': x,
-                'y': y,
-                'z': z
-            }
-            return JsonResponse({'summary': summary_data})
-        else:
-            return JsonResponse({'summary': None})
+        # if not job_listing:
+        summary_data = {
+            'title': job_listing.title,
+            'company': job_listing.company_name,
+            'location': "NA",
+            'description': text,
+            'formatted_description': final_formatted_text ,
+            'x': x,
+            'y': y,
+            'z': z
+        }
+        return JsonResponse({'summary': summary_data})
+        # else:
+            # return JsonResponse({'summary': None})
         
 @csrf_exempt
 def generate_plot_summary(request):

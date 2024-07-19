@@ -19,3 +19,13 @@ class QueryEmbedding(models.Model):
 class Summaries(models.Model):
     querys = models.TextField(null=True)
     summaries = models.TextField(null=True)
+
+class JobListing(models.Model):
+    job_id = models.UUIDField(null=True)
+    wv_uuid = models.TextField(null=True)
+    company_name = models.TextField(null=True)
+    company_id = models.UUIDField(null=True)
+    title = models.TextField(null=True)
+    text = models.TextField(null=True)
+    annotations = models.TextField(null=True)
+    vector = models.TextField(null=True)
