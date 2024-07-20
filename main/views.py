@@ -94,7 +94,11 @@ def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
         distance_list.append((uuid, x_dist, y_dist, z_dist))
 
     distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
-    distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
+    listings = JobListing.objects.filter(wv_uuid__in=distance_df['uuid'])
+    df = pd.DataFrame(list(listings.values()))
+    print(df)
+    # distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
+    distance_df = distance_df.merge(df, left_on='uuid', right_on='wv_uuid')
     print('Updated distancedf, shape:', distance_df.shape)
 
 

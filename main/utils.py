@@ -55,9 +55,10 @@ query_df: pd.DataFrame = None
 def initialize_df() -> pd.DataFrame:
     global listing_df  # Declare that you're modifying the global variable
 
-    df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'postings_w_embeddings_v2.fth')
+    df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'data_wv_uuid.fth')
 
     listing_df = pd.read_feather(df_path)
+    # listing_df = None
     print(f"listing_df initialized")
 
     return listing_df 
