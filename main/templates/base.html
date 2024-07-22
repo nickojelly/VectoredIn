@@ -862,7 +862,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('correlation-content').style.display = 'block';
 
                 // Update the progress bars
-                updateProgressBars();
+                
                 updateCorrelationBars(data.corr);
 
                 // Attach event listeners after the plot is initialized
@@ -886,6 +886,19 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 var yMax = Math.max(...yValues);
                 var zMin = Math.min(...zValues);
                 var zMax = Math.max(...zValues);
+                updateProgressBars();
+                //Update progress Bars
+                var plot = document.getElementById('plot-container');
+                var xAxisLabel = plot.layout.scene.xaxis.title.text;
+                var yAxisLabel = plot.layout.scene.yaxis.title.text;
+                var zAxisLabel = plot.layout.scene.zaxis.title.text;
+                document.getElementById('x-axis-label').textContent = xAxisLabel + ':';
+                document.getElementById('y-axis-label').textContent = yAxisLabel + ':';
+                document.getElementById('z-axis-label').textContent = zAxisLabel + ':';
+
+                document.getElementById('x-progress').max = xMax - xMin;
+                document.getElementById('y-progress').max = yMax - yMin;
+                document.getElementById('z-progress').max = zMax - zMin;
 
                 // Do something with the minimum and maximum values
                 console.log('X range:', xMin, xMax);
@@ -913,56 +926,6 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     // Call function to perform calculations
                     getDetailedCalculations(pointData);
 
-                    // // Clear the alignment summary
-                    // document.getElementById('alignment-summary').innerHTML = '';
-
-                    // // Show the generate button
-                    // document.getElementById('generate-alignment-btn').style.display = 'inline-block';
-
-                    // // Send the clicked point data to the Django view function
-                    // fetch('/get_point_summary/', {
-                    //     method: 'POST',
-                    //     headers: {
-                    //         'Content-Type': 'application/json',
-                    //         'X-CSRFToken': '{{ csrf_token }}'
-                    //     },
-                    //     body: JSON.stringify(pointData)
-                    // })
-                    //     .then(response => response.json())
-                    //     .then(data => {
-                    //         if (data.summary) {
-                    //             // Update the summary box with the received data
-                    //             document.getElementById('summary-title').textContent = data.summary.title;
-                    //             document.getElementById('summary-company').textContent = data.summary.company;
-                    //             document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
-
-                    //             // Update the progress bars with the received x, y, z values
-                    //             document.getElementById('x-progress').value = xMax - data.summary.x;
-                    //             document.getElementById('y-progress').value = yMax - data.summary.y;
-                    //             document.getElementById('z-progress').value = zMax - data.summary.z;
-
-                    //             // Collapse the job description by default
-                    //             var collapsible = document.querySelector('.is-collapsible');
-                    //             collapsible.classList.remove('is-active');
-
-                    //             // Display the generated summary
-                    //             document.getElementById('alignment-summary').innerHTML = 'Click to generate summary.';
-                    //         } else {
-                    //             // Clear the summary box if no data is available
-                    //             document.getElementById('summary-title').textContent = '';
-                    //             document.getElementById('summary-company').textContent = '';
-                    //             document.getElementById('summary-description').textContent = '';
-
-                    //             // Reset the progress bars to the minimum value
-                    //             document.getElementById('x-progress').value = document.getElementById('x-progress').min;
-                    //             document.getElementById('y-progress').value = document.getElementById('y-progress').min;
-                    //             document.getElementById('z-progress').value = document.getElementById('z-progress').min;
-
-                    //             // Clear the generated summary
-                    //             document.getElementById('alignment-summary').textContent = 'No alignment summary available.';
-                    //         }
-                    //     })
-                    //     .catch(error => console.error('Error:', error));
                 });
             });
 
@@ -984,6 +947,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         document.getElementById('x-progress').value = pointData.ranges.x_range[1] - data.summary.x;
                         document.getElementById('y-progress').value = pointData.ranges.y_range[1] - data.summary.y;
                         document.getElementById('z-progress').value = pointData.ranges.z_range[1] - data.summary.z;
+                        console.log('x_value',data.summary.x, 'x_min', pointData.ranges.x_range[1])
                     }
                 })
                 .catch(error => console.error('Error:', error));

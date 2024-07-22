@@ -246,6 +246,8 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
     uuid_x, uuid_y, uuid_z = uuid
     text_x, text_y, text_z = text
 
+    properties = ['job_id','company_id','company_name','title','formatted_experience_level','job_functions', 'industry_names', 'entities_TOOLS', 'entities_METHODS', 'entities_REMOTE', 'entities_EXPERIENCE', 'entities_RESPONSABILITY',]
+
     summary = Summaries.objects.filter(querys=[text_x,text_y,text_z]).first()
     # print(f"summary: {pd.DataFrame(list(summary.values()))}")
     # if summary:
@@ -261,7 +263,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
 
         listings = client.collections.get("ListingsV3_SCE")
         job_weaviate = listings.query.fetch_object_by_id(uuid[i], include_vector=True)
-        single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=3, grouped_task=prompt)
+        single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=5, grouped_task=prompt, grouped_properties = properties)
         pprint(f"summary query generated : {single_query}")
         summaries.append(single_query)
 
@@ -274,7 +276,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
             {"role": "user", "content": plot_summary_prompt}
         ],
         max_tokens=500,
-        temperature=0.7,
+        temperature=0.2,
     )
 
     msg = response.choices[0].message.content
