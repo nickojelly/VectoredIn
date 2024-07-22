@@ -21,10 +21,10 @@ class Summaries(models.Model):
     summaries = models.TextField(null=True)
 
 class JobListing(models.Model):
-    job_id = models.UUIDField(null=True)
-    wv_uuid = models.TextField(null=True)
+    job_id = models.IntegerField(null=True)
+    wv_uuid = models.CharField(max_length=37,primary_key=True)
     company_name = models.TextField(null=True)
-    company_id = models.UUIDField(null=True)
+    company_id = models.IntegerField(null=True)
     title = models.TextField(null=True)
     text = models.TextField(null=True)
     annotations = models.TextField(null=True)
@@ -32,7 +32,7 @@ class JobListing(models.Model):
     entity_indices = models.TextField(null=True)
 
 class SubComponemtEmbeddings(models.Model):
-    index = models.IntegerField(null=True)
+    index = models.IntegerField(primary_key=True)
     embedding = models.BinaryField(null=True)
     text = models.TextField(null=True)
     entity = models.TextField(null=True)

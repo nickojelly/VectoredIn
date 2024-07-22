@@ -288,7 +288,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
 
 def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weaviate.Client):
     print("Starting alignment summary")
-
+    properties = ['job_id','company_id','company_name','title','formatted_experience_level','job_functions', 'industry_names', 'entities_TOOLS', 'entities_METHODS', 'entities_REMOTE', 'entities_EXPERIENCE', 'entities_RESPONSABILITY',]
     prompt = generate_job_summary_prompt( text, distances, dist_ranges)
 
     pprint(f"prompt generated : {prompt}")
@@ -297,7 +297,7 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
 
     job_weaviate = listings.query.fetch_object_by_id(uuid, include_vector=True)
 
-    single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=1, grouped_task=prompt)
+    single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=1, grouped_task=prompt, grouped_properties=properties)
 
     pprint(f"single query generated : {single_query}")
 
@@ -306,19 +306,20 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
 # Define a function to call the endpoint and obtain embeddings
 def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts: List[str], rag=False) -> List[List[float]]:
 
-    generate_prompt = f"""Generate a list of the 5 common skills, 5 common responsiblities, and 5 common technologies for the attached job listings.
-    Your response should be in the following format, Do Not return anything else only return 1 list of 5 items for each of the following categories:
+    generate_prompt = f"""Generate a list of the 10 common skills, 10 common responsiblities, and 10 common technologies for the attached job listings.
+    Your response should be in the following format, Do Not return anything else only return 1 list of 10 items for each of the following categories:
     Title: {texts}
-    Skills: [List of 5 common skills]
-    Responsibilities: [List of 5 common responsibilities]
-    Technologies: [List of 5 common technologies]
+    Skills: [List of 10 common skills]
+    Responsibilities: [List of 10 common responsibilities]
+    Technologies: [List of 10 common technologies]
     
     """
+    properties = ['job_id','company_id','company_name','title','formatted_experience_level','job_functions', 'industry_names', 'entities_TOOLS', 'entities_METHODS', 'entities_REMOTE', 'entities_EXPERIENCE', 'entities_RESPONSABILITY',]
     if rag:
 
         listings =  weaviate_client.collections.get("ListingsV3_SCE")
         try:
-            response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5).generated
+            response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=10, grouped_properties=properties).generated
         except Exception as e:
             print(e)
             #failover if it dosent work
