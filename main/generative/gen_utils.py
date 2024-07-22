@@ -1,6 +1,6 @@
 import weaviate
 from pprint import pprint
-
+import pandas as pd
 import openai
 from ..models import JobPosting, QueryEmbedding, Summaries  # Import the JobPosting model
 from typing import List
@@ -242,13 +242,14 @@ def generate_job_summary_prompt(text, distances, dist_ranges):
 
 def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: openai.OpenAI):
 
-    print("Starting alignment summary")
+    print("Starting plot summary")
     uuid_x, uuid_y, uuid_z = uuid
     text_x, text_y, text_z = text
 
     summary = Summaries.objects.filter(querys=[text_x,text_y,text_z]).first()
-    if summary:
-        return summary.summaries
+    # print(f"summary: {pd.DataFrame(list(summary.values()))}")
+    # if summary:
+        # return summary.summaries
 
     prompts = []
     summaries = []
@@ -258,7 +259,7 @@ def generate_plot_summary(uuid,  text,  client: weaviate.Client, openai_client: 
         pprint(f"prompt generated : {prompt}")
         prompts.append(prompt)
 
-        listings = client.collections.get("ListingsV2")
+        listings = client.collections.get("ListingsV3_SCE")
         job_weaviate = listings.query.fetch_object_by_id(uuid[i], include_vector=True)
         single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['default'], limit=3, grouped_task=prompt)
         pprint(f"summary query generated : {single_query}")
@@ -292,7 +293,7 @@ def generate_alignment_summary(uuid,  text, distances,dist_ranges, client: weavi
 
     pprint(f"prompt generated : {prompt}")
 
-    listings = client.collections.get("ListingsV2")
+    listings = client.collections.get("ListingsV3_SCE")
 
     job_weaviate = listings.query.fetch_object_by_id(uuid, include_vector=True)
 
@@ -315,7 +316,7 @@ def vectorize(openai_client:openai.Client,weaviate_client:weaviate.Client, texts
     """
     if rag:
 
-        listings =  weaviate_client.collections.get("ListingsV2")
+        listings =  weaviate_client.collections.get("ListingsV3_SCE")
         try:
             response = listings.generate.near_text(query=texts, grouped_task=generate_prompt, limit=5).generated
         except Exception as e:

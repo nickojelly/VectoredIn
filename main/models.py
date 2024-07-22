@@ -1,5 +1,5 @@
 from django.db import models
-
+import numpy as np
 # Create your models here.
 class JobPosting(models.Model):
     title = models.CharField(max_length=200)
@@ -29,3 +29,16 @@ class JobListing(models.Model):
     text = models.TextField(null=True)
     annotations = models.TextField(null=True)
     vector = models.TextField(null=True)
+    entity_indices = models.TextField(null=True)
+
+class SubComponemtEmbeddings(models.Model):
+    index = models.IntegerField(null=True)
+    embedding = models.BinaryField(null=True)
+    text = models.TextField(null=True)
+    entity = models.TextField(null=True)
+
+    def set_embedding(self, array):
+        self.embedding = array.tobytes()
+
+    def get_embedding(self):
+        return np.frombuffer(self.embedding, dtype=np.float32) 

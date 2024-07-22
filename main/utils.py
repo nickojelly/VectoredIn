@@ -11,12 +11,13 @@ from .keys import set_env
 # from .models import JobPosting, QueryEmbedding, JobListing
 from tqdm import tqdm
 import json
+import numpy as np
 hnsw_obj: hnsw_python.HNSW = None
 
 def hnsw_intialize() -> hnsw_python.HNSW:
     global hnsw_obj  # Declare that you're modifying the global variable
 
-    hnsw_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'hnsw_save_dict_V2.pkl')
+    hnsw_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'hnsw_save_dict_V3_SEC.pkl')
     df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'postings_w_embeddings_v2.fth')
     with open(hnsw_path, 'rb') as f:
         hnsw_save_dict = pickle.load(f)
@@ -58,7 +59,6 @@ def initialize_df() -> pd.DataFrame:
     df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'data_wv_uuid.fth')
 
     listing_df = pd.read_feather(df_path)
-    # listing_df = None
     print(f"listing_df initialized")
 
     return listing_df 
@@ -68,15 +68,15 @@ weaviate_client = None
 from django.db import transaction
 
 def initialize_data(**kwargs):
-    from .models import JobListing
-    df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'postings_w_embeddings_v2.fth')
+    from .models import JobListing, SubComponemtEmbeddings
+    df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'data_ner_embeddings_V3_SEC.fth')
     listing_df = pd.read_feather(df_path)
     print(f"Starting to create JobListing objects")
     JobListing.objects.all().delete()
     
     job_listings = []
     for _, row in tqdm(listing_df.iterrows()):
-        print()
+        # print()
         job_listings.append(JobListing(
             job_id=int(row['job_id']),
             wv_uuid=row['wv_uuid'],
@@ -85,13 +85,42 @@ def initialize_data(**kwargs):
             title=row['title'],
             text=row['text'],
             annotations=json.dumps(row['annotations'].tolist()),
-            vector=json.dumps(row['vector'].tolist())
+            vector=json.dumps(row['vector'].tolist()),
+            entity_indices=json.dumps(row['embedding_indexes'].tolist()),
         ))
     
     with transaction.atomic():
         JobListing.objects.bulk_create(job_listings, ignore_conflicts=True)
     
     print(f"Created {len(job_listings)} JobListing objects")
+
+    df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'sub_component_embeddings.fth')
+    sce_df = pd.read_feather(df_path)
+    print(f"Starting to create SubComponentEmbeddings objects")
+    SubComponemtEmbeddings.objects.all().delete()
+
+    batch_size = 1000  # Adjust based on your needs and database capabilities
+    embeddings_to_create = []
+
+    for i,data in tqdm(sce_df.iterrows()):
+        embedding = SubComponemtEmbeddings(
+            index=i,
+            embedding=data['embedding'].astype(np.float32).tobytes(),
+            text=data['value'],
+            entity=data['type']
+        )
+        embeddings_to_create.append(embedding)
+
+        if len(embeddings_to_create) >= batch_size:
+            with transaction.atomic():
+                SubComponemtEmbeddings.objects.bulk_create(embeddings_to_create)
+            embeddings_to_create = []
+
+    # Create any remaining embeddings
+    if embeddings_to_create:
+        with transaction.atomic():
+            SubComponemtEmbeddings.objects.bulk_create(embeddings_to_create)
+
 
 
 def initialize_weaviate_client() :

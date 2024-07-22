@@ -16,7 +16,7 @@ from .generative import gen_utils
 from django.views.decorators.csrf import csrf_exempt
 from pprint import pprint
 import numpy as np
-from .models import JobPosting, QueryEmbedding, JobListing  # Import the JobPosting model
+from .models import JobPosting, QueryEmbedding, JobListing, SubComponemtEmbeddings  # Import the JobPosting model
 import re
 import textwrap
 logger = logging.getLogger(__name__)
@@ -220,15 +220,9 @@ def parse_asterisks(text):
         parts[i] = f'<strong>{parts[i]}</strong>'
     return ''.join(parts)
 
-
 def apply_formatting(text):
-    # Handle bold text
-    # text = re.sub(r' \n', r'\n', text)
-    # text = re.sub('\*\*(\s\w.*?)\*\*', r'<strong>AHHHHH \1 AHHHHH</strong>', text)
     text = parse_asterisks(text)
 
-    print(text)
-    
     # Split text into sections
     sections = re.split(r'\n\s*\n', text)
     
@@ -253,13 +247,11 @@ def apply_formatting(text):
     
     return ''.join(formatted_sections)
 
-
-
 def format_description_with_ner(text, entities):
     formatted_text = text
     offset = 0
-    print(f"Entities = {entities}")
-    print(f"text = {text}")
+    # print(f"Entities = {entities}")
+    # print(f"text = {text}")
     for entity in sorted(entities, key=lambda x: x['start'], reverse=True):
         start = entity['start'] + offset
         end = entity['end'] + offset
@@ -268,6 +260,167 @@ def format_description_with_ner(text, entities):
         # offset += len(span) - (end - start)
     
     return formatted_text
+
+@csrf_exempt
+def get_related_roles(request):
+    if request.method == 'POST':
+        point_data = json.loads(request.body)
+        uuid = point_data['customData']
+        
+        job_listing = JobListing.objects.filter(wv_uuid=uuid).first()
+        vector = json.loads(job_listing.vector)
+        search_results = hnsw_obj.search(q=vector, k=6)
+        
+        remapped = [[hnsw_obj.df['wv_uuid'].iloc[i[0]], hnsw_obj.data[i[0]], i[1]] for i in search_results[1:]]
+        related_df = pd.DataFrame(data=remapped, columns=['wv_uuid', 'vector', 'dist'])
+        
+        related_roles = JobListing.objects.filter(wv_uuid__in=related_df['wv_uuid'].values)
+        df = pd.DataFrame(list(related_roles.values()))
+        related_df = pd.merge(related_df, df, on='wv_uuid')
+        
+        # Generate HTML for related roles
+        html_content = generate_related_roles_html(related_df)
+        
+        return JsonResponse({'html': html_content})
+
+def generate_related_roles_html(related_df):
+    html = ""
+    for _, role in related_df.iterrows():
+        html += f"""
+        <div class="box">
+            <div class="columns">
+                <div class="column">
+                    <h5 class="title is-5">{role['title']}</h5>
+                    <p class="subtitle is-6">{role['company_name']}</p>
+                </div>
+                <div class="column is-narrow">
+                    <div class="box has-background-light">
+                        <p class="has-text-weight-bold">Distance</p>
+                        <p>{role['dist']:.5f}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
+    return html
+
+
+@csrf_exempt
+def get_point_calculations(request):
+    if request.method == 'POST':
+        point_data = json.loads(request.body)
+        pprint(point_data)
+        uuid = point_data['customData']
+        x = point_data['x']
+        y = point_data['y']
+        z = point_data['z']
+
+
+        job_listing = JobListing.objects.filter(wv_uuid = uuid).first()
+        vector = json.loads(job_listing.vector)
+        
+        entity_indicies = json.loads(job_listing.entity_indices)
+
+        entities = SubComponemtEmbeddings.objects.filter(index__in=entity_indicies)
+
+        entities = pd.DataFrame(list(entities.values()))
+
+        entities.embedding = entities['embedding'].apply(lambda x: np.frombuffer(x, dtype=np.float32))
+
+        x_vector  = vectorize_query_db(point_data['xText'],True)
+        y_vector  = vectorize_query_db(point_data['yText'],True)
+        z_vector  = vectorize_query_db(point_data['zText'],True)
+
+        entities['x_dist'] = entities['embedding'].apply(lambda x: hnsw_obj.distance(x,x_vector))
+        entities['y_dist'] = entities['embedding'].apply(lambda x: hnsw_obj.distance(x,y_vector))
+        entities['z_dist'] = entities['embedding'].apply(lambda x: hnsw_obj.distance(x,z_vector))
+
+        x = entities['x_dist'].values
+        y = entities['y_dist'].values
+        z = entities['z_dist'].values
+        # custom_data = distance_df.wv_uuid.values
+        # print(custom_data)
+
+        global_min = min(x.min(), y.min(), z.min())
+        global_max = max(x.max(), y.max(), z.max())
+
+        
+
+        print(f"Entity df = {entities}")
+        print(f"Embedding indicies = {entity_indicies}")
+        print(f"uuid = {uuid}")
+        min_x = min(point_data['ranges']['x_range'][0], x.min())
+        min_y = min(point_data['ranges']['y_range'][0], y.min())
+        min_z = min(point_data['ranges']['z_range'][0], z.min())
+        global_min = min(min_x,min_y,min_z)
+        global_max = max(x.max(), y.max(), z.max())
+
+        trace = go.Scatter3d(
+            x=x,
+            y=y,
+            z=z,
+            mode='markers',
+            marker=dict(
+                size=8,
+                color=x+y+z,
+                colorscale='Viridis',
+                opacity=1,
+                colorbar=dict(title='Semantic Distance')
+            ),
+            text=entities['entity']+' : '+entities['text'],
+            hoverinfo='text',
+            name='Semantic Distance',
+            # customdata=custom_data
+        )
+
+        layout = dict(
+            scene=dict(
+                aspectmode='cube',
+                xaxis=dict(
+                    range=[global_min, global_max],
+                    title=point_data['xText'],
+                    backgroundcolor="rgb(200, 230, 225)",  # Muted color for x-axis
+                    gridcolor="white",
+                    showbackground=True,
+                    zerolinecolor="white",
+                ),
+                yaxis=dict(
+                    range=[global_min, global_max],
+                    title=point_data['yText'],
+                    backgroundcolor="rgb(220, 230, 240)",  # Muted color for y-axis
+                    gridcolor="white",
+                    showbackground=True,
+                    zerolinecolor="white",
+                ),
+                zaxis=dict(
+                    range=[global_min, global_max],
+                    title=point_data['zText'],
+                    backgroundcolor="rgb(230, 240, 220)",  # Muted color for z-axis
+                    gridcolor="white",
+                    showbackground=True,
+                    zerolinecolor="white",
+                ),
+            ),
+            hovermode='closest',
+            width=800,  # Adjust the width as needed
+            height=400,  # Adjust the height as needed
+            margin=dict(r=10, l=10, b=10, t=10),
+        )
+
+        plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
+        print('returing')
+            # Convert plot_data to a JSON-serializable format
+        plot_data_json = json.dumps([trace], cls=PlotlyJSONEncoder)
+
+        response_data = {
+            'data': plot_data_json, 
+            'layout': layout,
+            # 'corr': corr
+        }
+
+        return JsonResponse(response_data)
+
+        return plot_div, [trace], layout, 
 
 @csrf_exempt
 def get_point_summary(request):
@@ -293,31 +446,6 @@ def get_point_summary(request):
 
         final_formatted_text = apply_formatting(formatted_text)
 
-        # text = job_listing.iloc[0]['text']
-
-        raw_text = repr(text)
-        wrapped_text = textwrap.fill(raw_text, width=100)
-        print(f"Raw text (wrapped):\n{wrapped_text}")
-        # final_formatted_text = formatted_text
-
-        # raw_text = repr(re.sub(' \\n', '\n', text))
-        raw_text = repr(re.sub(r'\*\*(\s\w.*?)\*\*', '<strong>AHHHHH \1 AHHHHH</strong>', text))
-        wrapped_text = textwrap.fill(raw_text, width=100)
-        print(f"Raw text (wrapped):\n{wrapped_text}")
-
-        raw_text = repr(re.sub(r' \n', r'\n', text))
-        wrapped_text = textwrap.fill(final_formatted_text, width=100)
-        print(f"formatted text (wrapped):\n{wrapped_text}")
-
-
-
-        print(f"Formatted text = {formatted_text}")
-
-        print(f"Final formatted text = {final_formatted_text}")
-
-        print(f"Job listing = {uuid}")
-
-        # if not job_listing:
         summary_data = {
             'title': job_listing.title,
             'company': job_listing.company_name,

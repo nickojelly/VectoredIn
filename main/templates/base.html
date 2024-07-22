@@ -315,8 +315,8 @@
                                             </a>
                                         </p>
                                         <p class="control">
-                                            <input class="input " type="number" name="k_value" placeholder="10"
-                                                value="10" min="1" max="1000" step="1">
+                                            <input class="input " type="number" name="k_value" placeholder="50"
+                                                value="50" min="1" max="1000" step="1">
                                         </p>
                                     </div>
                                 </div>
@@ -328,8 +328,8 @@
                                             </a>
                                         </p>
                                         <p class="control">
-                                            <input class="input " type="number" name="n_value" placeholder="5" value="5"
-                                                min="3" max="50" step="1">
+                                            <input class="input " type="number" name="n_value" placeholder="10"
+                                                value="10" min="3" max="50" step="1">
                                         </p>
                                     </div>
                                 </div>
@@ -442,14 +442,30 @@
 
                         <div class="tabs is-boxed">
                             <ul>
-                                <li class="is-active"><a data-subtab="alignment-summary">Alignment Summary</a></li>
-                                <li><a data-subtab="description">Description</a></li>
+                                <li class="is-active"><a data-subtab="description">Description</a></li>
+                                <li><a data-subtab="subcomponent-vectors">Sub-component Vectors</a></li>
+                                <li><a data-subtab="alignment-summary">Alignment Summary</a></li>
                                 <li><a data-subtab="related-roles">Related Roles</a></li>
                             </ul>
                         </div>
 
                         <div id="subtab-content">
-                            <div class="subtab-pane is-active" id="alignment-summary">
+                            <div class="subtab-pane is-active" id="description">
+                                <div class="box">
+                                    <h4 class="title is-4">Job Description</h4>
+                                    <div class="content">
+                                        <p id="summary-description"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="subtab-pane" id="subcomponent-vectors">
+                                <div class="box">
+                                    <h4 class="title is-4">Sub-component Vectors</h4>
+                                    <div id="subcomponent-plot-container" style="width: 100%; height: 400px;"></div>
+                                </div>
+                            </div>
+
+                            <div class="subtab-pane" id="alignment-summary">
                                 <div class="box">
                                     <h4 class="title is-4">Alignment Summary
                                         <button id="generate-alignment-btn"
@@ -459,18 +475,11 @@
                                             <i class="fas fa-info-circle"></i>
                                         </span>
                                     </h4>
-                                    <div id="alignment-summary"></div>
+                                    <div id="alignment-summary-content"></div>
                                 </div>
                             </div>
 
-                            <div class="subtab-pane" id="description">
-                                <div class="box">
-                                    <h4 class="title is-4">Job Description</h4>
-                                    <div class="content">
-                                        <p id="summary-description"></p>
-                                    </div>
-                                </div>
-                            </div>
+
                             <div class="subtab-pane" id="related-roles">
                                 <div class="box">
                                     <h4 class="title is-4">Related Roles</h4>
@@ -491,9 +500,7 @@
                                     <i class="fas fa-info-circle"></i>
                                 </span>
                             </h2>
-                            <div class="content">
-                                <p id="plot-summary">Click generate above to generate a plot summary</p>
-                            </div>
+                            <div id="plot-summary-content"></div>
                         </div>
                     </div>
 
@@ -849,6 +856,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 // Initialize the plot with the initial data and axis labels
                 console.log('Received data.layout:', data.layout);
                 Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout);
+                // Plotly.newPlot('subcomponent-plot-container', JSON.parse(data.data), data.layout);
                 // Hide skeleton and show actual correlation content
                 document.getElementById('correlation-skeleton').style.display = 'none';
                 document.getElementById('correlation-content').style.display = 'block';
@@ -897,52 +905,134 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         }
                     };
 
-                    // Send the clicked point data to the Django view function
-                    fetch('/get_point_summary/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify(pointData)
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.summary) {
-                                // Update the summary box with the received data
-                                document.getElementById('summary-title').textContent = data.summary.title;
-                                document.getElementById('summary-company').textContent = data.summary.company;
-                                document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
+                    // Call function to quickly return text
+                    getQuickSummary(pointData);
 
-                                // Update the progress bars with the received x, y, z values
-                                document.getElementById('x-progress').value = xMax - data.summary.x;
-                                document.getElementById('y-progress').value = yMax - data.summary.y;
-                                document.getElementById('z-progress').value = zMax - data.summary.z;
+                    getRelatedRoles(pointData);
 
-                                // Collapse the job description by default
-                                var collapsible = document.querySelector('.is-collapsible');
-                                collapsible.classList.remove('is-active');
+                    // Call function to perform calculations
+                    getDetailedCalculations(pointData);
 
-                                // Display the generated summary
-                                document.getElementById('alignment-summary').innerHTML = 'Click to generate summary.';
-                            } else {
-                                // Clear the summary box if no data is available
-                                document.getElementById('summary-title').textContent = '';
-                                document.getElementById('summary-company').textContent = '';
-                                document.getElementById('summary-description').textContent = '';
+                    // // Clear the alignment summary
+                    // document.getElementById('alignment-summary').innerHTML = '';
 
-                                // Reset the progress bars to the minimum value
-                                document.getElementById('x-progress').value = document.getElementById('x-progress').min;
-                                document.getElementById('y-progress').value = document.getElementById('y-progress').min;
-                                document.getElementById('z-progress').value = document.getElementById('z-progress').min;
+                    // // Show the generate button
+                    // document.getElementById('generate-alignment-btn').style.display = 'inline-block';
 
-                                // Clear the generated summary
-                                document.getElementById('alignment-summary').textContent = 'No alignment summary available.';
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
+                    // // Send the clicked point data to the Django view function
+                    // fetch('/get_point_summary/', {
+                    //     method: 'POST',
+                    //     headers: {
+                    //         'Content-Type': 'application/json',
+                    //         'X-CSRFToken': '{{ csrf_token }}'
+                    //     },
+                    //     body: JSON.stringify(pointData)
+                    // })
+                    //     .then(response => response.json())
+                    //     .then(data => {
+                    //         if (data.summary) {
+                    //             // Update the summary box with the received data
+                    //             document.getElementById('summary-title').textContent = data.summary.title;
+                    //             document.getElementById('summary-company').textContent = data.summary.company;
+                    //             document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
+
+                    //             // Update the progress bars with the received x, y, z values
+                    //             document.getElementById('x-progress').value = xMax - data.summary.x;
+                    //             document.getElementById('y-progress').value = yMax - data.summary.y;
+                    //             document.getElementById('z-progress').value = zMax - data.summary.z;
+
+                    //             // Collapse the job description by default
+                    //             var collapsible = document.querySelector('.is-collapsible');
+                    //             collapsible.classList.remove('is-active');
+
+                    //             // Display the generated summary
+                    //             document.getElementById('alignment-summary').innerHTML = 'Click to generate summary.';
+                    //         } else {
+                    //             // Clear the summary box if no data is available
+                    //             document.getElementById('summary-title').textContent = '';
+                    //             document.getElementById('summary-company').textContent = '';
+                    //             document.getElementById('summary-description').textContent = '';
+
+                    //             // Reset the progress bars to the minimum value
+                    //             document.getElementById('x-progress').value = document.getElementById('x-progress').min;
+                    //             document.getElementById('y-progress').value = document.getElementById('y-progress').min;
+                    //             document.getElementById('z-progress').value = document.getElementById('z-progress').min;
+
+                    //             // Clear the generated summary
+                    //             document.getElementById('alignment-summary').textContent = 'No alignment summary available.';
+                    //         }
+                    //     })
+                    //     .catch(error => console.error('Error:', error));
                 });
             });
+
+        function getQuickSummary(pointData) {
+            fetch('/get_point_summary/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(pointData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.summary) {
+                        document.getElementById('summary-title').textContent = data.summary.title;
+                        document.getElementById('summary-company').textContent = data.summary.company;
+                        document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
+                        document.getElementById('x-progress').value = pointData.ranges.x_range[1] - data.summary.x;
+                        document.getElementById('y-progress').value = pointData.ranges.y_range[1] - data.summary.y;
+                        document.getElementById('z-progress').value = pointData.ranges.z_range[1] - data.summary.z;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function getRelatedRoles(pointData) {
+            fetch('/get_related_roles/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(pointData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.html) {
+                        document.getElementById('related-roles-content').innerHTML = data.html;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function getDetailedCalculations(pointData) {
+            var xText = document.querySelector('input[name="x_text"]').value;
+            var yText = document.querySelector('input[name="y_text"]').value;
+            var zText = document.querySelector('input[name="z_text"]').value;
+
+            // Add the text values to pointData
+            pointData.xText = xText;
+            pointData.yText = yText;
+            pointData.zText = zText;
+
+
+            fetch('/get_point_calculations/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(pointData)
+            })
+                .then(response => response.json())
+                .then(data => {
+
+                    Plotly.react('subcomponent-plot-container', JSON.parse(data.data), data.layout);
+                })
+                .catch(error => console.error('Error: AHHHHH', error));
+        }
 
         function updatePlot(rag = false) {
             var formData = new FormData(document.getElementById('plot-form'));
@@ -1039,12 +1129,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
                     if (data.summary) {
-                        var collapsible = document.querySelector('.is-collapsible');
-                        var content = collapsible.querySelector('.is-collapsible-content');
-                        content.style.display = 'block';
-                        document.getElementById('plot-summary').innerHTML = data.summary;
+                        document.getElementById('plot-summary-content').innerHTML = data.summary;
                     } else {
-                        document.getElementById('plot-summary').textContent = 'No summary available.';
+                        document.getElementById('plot-summary-content').textContent = 'No summary available.';
                     }
                     button.classList.remove('is-loading');
                 })
@@ -1053,6 +1140,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     button.classList.remove('is-loading');
                 });
         }
+
 
         document.getElementById('generate-alignment-btn').addEventListener('click', function () {
             var button = this;
@@ -1084,9 +1172,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     .then(response => response.json())
                     .then(data => {
                         if (data.summary) {
-                            document.getElementById('alignment-summary').innerHTML = data.summary;
+                            document.getElementById('alignment-summary-content').innerHTML = data.summary;
                         } else {
-                            document.getElementById('alignment-summary').textContent = 'No alignment summary available.';
+                            document.getElementById('alignment-summary-content').textContent = 'No alignment summary available.';
                         }
                         button.classList.remove('is-loading');
                     })
