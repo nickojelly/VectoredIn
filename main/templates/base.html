@@ -315,8 +315,8 @@
                                             </a>
                                         </p>
                                         <p class="control">
-                                            <input class="input " type="number" name="k_value" placeholder="50"
-                                                value="50" min="1" max="1000" step="1">
+                                            <input class="input " type="number" name="k_value" placeholder="20"
+                                                value="20" min="1" max="1000" step="1">
                                         </p>
                                     </div>
                                 </div>
@@ -328,8 +328,8 @@
                                             </a>
                                         </p>
                                         <p class="control">
-                                            <input class="input " type="number" name="n_value" placeholder="10"
-                                                value="10" min="3" max="50" step="1">
+                                            <input class="input " type="number" name="n_value" placeholder="30"
+                                                value="30" min="3" max="50" step="1">
                                         </p>
                                     </div>
                                 </div>
@@ -410,7 +410,6 @@
                     <ul>
                         <li class="is-active"><a data-tab="point-info">Point Information</a></li>
                         <li><a data-tab="plot-info">Plot Info</a></li>
-                        <li><a data-tab="related-jobs">Related Jobs</a></li>
                     </ul>
                 </div>
 
@@ -504,9 +503,6 @@
                         </div>
                     </div>
 
-                    <div class="tab-pane" id="related-jobs">
-                        <!-- Related jobs content goes here -->
-                    </div>
                 </div>
             </div>
         </div>
@@ -794,16 +790,22 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         // Function to update the progress bar labels and values
         function updateProgressBars() {
             var plot = document.getElementById('plot-container');
+            var plotData = plot.data;
             var xAxisLabel = plot.layout.scene.xaxis.title.text;
             var yAxisLabel = plot.layout.scene.yaxis.title.text;
             var zAxisLabel = plot.layout.scene.zaxis.title.text;
 
-            var xMin = plot.layout.scene.xaxis.range[0];
-            var xMax = plot.layout.scene.xaxis.range[1];
-            var yMin = plot.layout.scene.yaxis.range[0];
-            var yMax = plot.layout.scene.yaxis.range[1];
-            var zMin = plot.layout.scene.zaxis.range[0];
-            var zMax = plot.layout.scene.zaxis.range[1];
+            var xValues = plotData[0].x;
+            var yValues = plotData[0].y;
+            var zValues = plotData[0].z;
+            console.log(xValues)
+            // Calculate the minimum and maximum values for x, y, and z
+            var xMin = Math.min(...xValues);
+            var xMax = Math.max(...xValues);
+            var yMin = Math.min(...yValues);
+            var yMax = Math.max(...yValues);
+            var zMin = Math.min(...zValues);
+            var zMax = Math.max(...zValues);
 
             document.getElementById('x-axis-label').textContent = xAxisLabel + ':';
             document.getElementById('y-axis-label').textContent = yAxisLabel + ':';
@@ -862,7 +864,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('correlation-content').style.display = 'block';
 
                 // Update the progress bars
-                
+
                 updateCorrelationBars(data.corr);
 
                 // Attach event listeners after the plot is initialized
@@ -947,7 +949,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         document.getElementById('x-progress').value = pointData.ranges.x_range[1] - data.summary.x;
                         document.getElementById('y-progress').value = pointData.ranges.y_range[1] - data.summary.y;
                         document.getElementById('z-progress').value = pointData.ranges.z_range[1] - data.summary.z;
-                        console.log('x_value',data.summary.x, 'x_min', pointData.ranges.x_range[1])
+                        console.log('x_value', data.summary.x, 'x_min', pointData.ranges.x_range[1])
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -1048,6 +1050,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     // Remove the 'is-loading' class from the button
                     document.getElementById('update-button').classList.remove('is-loading');
                     updateCorrelationBars(data.corr);
+                    updateProgressBars();
                 })
                 .catch(error => console.error('Error:', error));
         }

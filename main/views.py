@@ -346,8 +346,8 @@ def get_point_calculations(request):
 
         
 
-        print(f"Entity df = {entities}")
-        print(f"Embedding indicies = {entity_indicies}")
+        # print(f"Entity df = {entities}")
+        # print(f"Embedding indicies = {entity_indicies}")
         print(f"uuid = {uuid}")
         min_x = min(point_data['ranges']['x_range'][0], x.min())
         min_y = min(point_data['ranges']['y_range'][0], y.min())
@@ -440,7 +440,7 @@ def get_point_summary(request):
         company_name = job_listing.company_name
 
 
-        print(f"Annotations = {annotations}, type {type(annotations)}, text = {text}")
+        # print(f"Annotations = {annotations}, type {type(annotations)}, text = {text}")
 
         formatted_text = format_description_with_ner(text, annotations)
 
