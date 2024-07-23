@@ -116,6 +116,8 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
         distance_df = pd.read_feather(distance_df_path)
     # distance_df = distance_df.sample(n=10)
+    red_point = distance_df.query('uuid == "00bf8c9d-be8f-45f3-9748-4a44379745e4"')
+    
     # distance_df['sum_dist'] = distance_df['x_dist'] + distance_df['y_dist'] + distance_df['z_dist']
     # distance_df = distance_df.sort_values(by='sum_dist', ascending=False)
     x = distance_df['x_dist'].values
@@ -141,13 +143,51 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
             color=x+y+z,
             colorscale='Viridis',
             opacity=1,
-            colorbar=dict(title='Semantic Distance')
+                    colorbar=dict(
+            title='Semantic Distance',
+            x=0.85,
+            y=0.5,
+            len=0.75,
+        )
         ),
+
+        
         text=distance_df['title']+' | '+distance_df['company_name'],
         hoverinfo='text',
         name='Semantic Distance',
-        customdata=custom_data
+        customdata=custom_data,
+        showlegend=False
     )
+    # distance_df = red_point
+    # x = distance_df['x_dist'].values
+    # y = distance_df['y_dist'].values
+    # z = distance_df['z_dist'].values
+    # custom_data = distance_df.wv_uuid.values
+
+#     red_pointtrace = go.Scatter3d(
+#         x=x,
+#         y=y,
+#         z=z,
+#         mode='markers',
+#         marker=dict(
+#             size=8,
+#             color='red',
+#             symbol='diamond',
+#             # colorscale='Viridis',
+#             opacity=1,
+#             # colorbar=dict(title='Semantic Distance')
+#         ),
+#         text=distance_df['title']+' | '+distance_df['company_name'],
+#         hoverinfo='text',
+#         # name='Semantic Distance',
+#         customdata=custom_data,
+#         showlegend=False
+#     )
+#     camera = dict(
+#     up=dict(x=0, y=0, z=1),
+#     center=dict(x=0, y=0, z=0),
+#     eye=dict(x=2.5, y=2.5, z=2.5)
+# )
 
     layout = dict(
         scene=dict(
@@ -180,10 +220,14 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         hovermode='closest',
         width=800,  # Adjust the width as needed
         height=600,  # Adjust the height as needed
-        margin=dict(r=10, l=10, b=10, t=10),
+        margin=dict(r=10, l=10, b=0, t=10),
+        # scene_camera=camera,
     )
 
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
+
+    fig = go.Figure(data=[trace], layout=layout)
+    plot(fig, auto_open=False, filename='fullplot.html')
 
     return plot_div, [trace], layout, [xy_cor, xz_cor, yz_cor]
 
@@ -378,6 +422,7 @@ def get_point_calculations(request):
             y=y,
             z=z,
             mode='markers',
+            showlegend=False,
     marker=dict(
         size=8,
         color=x+y+z,
@@ -409,6 +454,7 @@ def get_point_calculations(request):
             text=[f"{original_vector['entity']}"],
             hoverinfo='text',
             name='Average Embedding Distance',
+            showlegend=False
         )
 
         layout = dict(
@@ -441,8 +487,13 @@ def get_point_calculations(request):
             ),
             hovermode='closest',
             width=800,  # Adjust the width as needed
-            height=400,  # Adjust the height as needed
+            height=600,  # Adjust the height as needed
             margin=dict(r=10, l=10, b=10, t=10),
+            scene_camera = dict(
+                up=dict(x=0, y=0, z=1),
+                center=dict(x=0, y=0, z=0),
+                eye=dict(x=2.5, y=2.5, z=2.5)
+            )
         )
 
         plot_div = plot({'data': [trace, original_vector_trace], 'layout': layout}, output_type='div', config={'responsive': True})
