@@ -62,10 +62,13 @@ def vectorize_query_db(text, rag=False):
         query_embedding.save()
     else:
         # If the query embedding exists, retrieve the vectors
+        print(f"Query embedding exists for query: {text}, query = {query_embedding.rag_query}")
         if rag:
             vector = np.array(json.loads(query_embedding.rag_query_embedding))
         else:
             vector = np.array(json.loads(query_embedding.query_embedding))
+
+    
     return vector
 
 def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
@@ -305,6 +308,9 @@ def generate_related_roles_html(related_df):
     return html
 
 
+def truncate_text(text, max_length=100):
+    return text[:max_length] + '...' if len(text) > max_length else text
+
 @csrf_exempt
 def get_point_calculations(request):
     if request.method == 'POST':
@@ -321,11 +327,20 @@ def get_point_calculations(request):
         
         entity_indicies = json.loads(job_listing.entity_indices)
 
+        original_vector_df = pd.DataFrame({
+            'entity': ['Average Embedding'],
+            'text': ['Vector'],
+            'embedding': [vector],
+            'index': [-1]  # Use a unique index for the original vector
+        })
+
         entities = SubComponemtEmbeddings.objects.filter(index__in=entity_indicies)
 
         entities = pd.DataFrame(list(entities.values()))
 
         entities.embedding = entities['embedding'].apply(lambda x: np.frombuffer(x, dtype=np.float32))
+
+        entities = pd.concat([entities, original_vector_df], ignore_index=True)
 
         x_vector  = vectorize_query_db(point_data['xText'],True)
         y_vector  = vectorize_query_db(point_data['yText'],True)
@@ -340,7 +355,9 @@ def get_point_calculations(request):
         z = entities['z_dist'].values
         # custom_data = distance_df.wv_uuid.values
         # print(custom_data)
-
+        
+        original_vector = entities.iloc[-1]
+        entities = entities.iloc[:-1]
         global_min = min(x.min(), y.min(), z.min())
         global_max = max(x.max(), y.max(), z.max())
 
@@ -349,6 +366,7 @@ def get_point_calculations(request):
         # print(f"Entity df = {entities}")
         # print(f"Embedding indicies = {entity_indicies}")
         print(f"uuid = {uuid}")
+        print(f"vector = {vector}")
         min_x = min(point_data['ranges']['x_range'][0], x.min())
         min_y = min(point_data['ranges']['y_range'][0], y.min())
         min_z = min(point_data['ranges']['z_range'][0], z.min())
@@ -360,17 +378,37 @@ def get_point_calculations(request):
             y=y,
             z=z,
             mode='markers',
+    marker=dict(
+        size=8,
+        color=x+y+z,
+        colorscale='Viridis',
+        opacity=1,
+        colorbar=dict(
+            title='Semantic Distance',
+            x=0.85,
+            y=0.5,
+            len=0.75,
+        )
+    ),
+            text=[truncate_text(f"{entity} : {text}") for entity, text in zip(entities['entity'], entities['text'])],
+            hoverinfo='text',
+            name='Sub Component Distances',
+            # customdata=custom_data
+        )
+
+        original_vector_trace = go.Scatter3d(
+            x=[original_vector['x_dist']],
+            y=[original_vector['y_dist']],
+            z=[original_vector['z_dist']],
+            mode='markers',
             marker=dict(
                 size=8,
-                color=x+y+z,
-                colorscale='Viridis',
-                opacity=1,
-                colorbar=dict(title='Semantic Distance')
+                color='red',
+                symbol='diamond',
             ),
-            text=entities['entity']+' : '+entities['text'],
+            text=[f"{original_vector['entity']}"],
             hoverinfo='text',
-            name='Semantic Distance',
-            # customdata=custom_data
+            name='Average Embedding Distance',
         )
 
         layout = dict(
@@ -407,11 +445,15 @@ def get_point_calculations(request):
             margin=dict(r=10, l=10, b=10, t=10),
         )
 
-        plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
+        plot_div = plot({'data': [trace, original_vector_trace], 'layout': layout}, output_type='div', config={'responsive': True})
         print('returing')
+        fig = go.Figure(data=[trace, original_vector_trace], layout=layout)
+        plot(fig, auto_open=False)
+        # with open('sub_component_plot.html', 'w') as f:
+        #     f.write(plot_html)
             # Convert plot_data to a JSON-serializable format
-        plot_data_json = json.dumps([trace], cls=PlotlyJSONEncoder)
-
+        plot_data_json = json.dumps([trace, original_vector_trace], cls=PlotlyJSONEncoder)
+        # plot_div.
         response_data = {
             'data': plot_data_json, 
             'layout': layout,
@@ -421,7 +463,7 @@ def get_point_calculations(request):
         return JsonResponse(response_data)
 
         return plot_div, [trace], layout, 
-
+from plotly.offline import plot
 @csrf_exempt
 def get_point_summary(request):
     if request.method == 'POST':
