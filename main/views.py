@@ -62,7 +62,7 @@ def vectorize_query_db(text, rag=False):
         query_embedding.save()
     else:
         # If the query embedding exists, retrieve the vectors
-        print(f"Query embedding exists for query: {text}, query = {query_embedding.rag_query}")
+        # print(f"Query embedding exists for query: {text}, query = {query_embedding.rag_query}")
         if rag:
             vector = np.array(json.loads(query_embedding.rag_query_embedding))
         else:
@@ -99,10 +99,7 @@ def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
     distance_df = pd.DataFrame(data=distance_list, columns=['uuid', 'x_dist', 'y_dist', 'z_dist'])
     listings = JobListing.objects.filter(wv_uuid__in=distance_df['uuid'])
     df = pd.DataFrame(list(listings.values()))
-    print(df)
-    # distance_df = distance_df.merge(listing_df, left_on='uuid', right_on='wv_uuid')
     distance_df = distance_df.merge(df, left_on='uuid', right_on='wv_uuid')
-    print('Updated distancedf, shape:', distance_df.shape)
 
 
     return distance_df
@@ -377,7 +374,7 @@ def get_point_calculations(request):
         global_max = max(x.max(), y.max(), z.max())
 
         print(f"uuid = {uuid}")
-        print(f"vector = {vector}")
+        # print(f"vector = {vector}")
         min_x = min(point_data['ranges']['x_range'][0], x.min())
         min_y = min(point_data['ranges']['y_range'][0], y.min())
         min_z = min(point_data['ranges']['z_range'][0], z.min())
@@ -465,7 +462,7 @@ def get_point_calculations(request):
         )
 
         plot_div = plot({'data': [trace, original_vector_trace], 'layout': layout}, output_type='div', config={'responsive': True})
-        print('returing')
+        # print('returing')
         fig = go.Figure(data=[trace, original_vector_trace], layout=layout)
         plot_data_json = json.dumps([trace, original_vector_trace], cls=PlotlyJSONEncoder)
         response_data = {
@@ -551,7 +548,7 @@ def generate_plot_summary(request):
         y_data = plotdata[0]['y']
         z_data = plotdata[0]['z']
 
-        print(f"Plotdata = {plotdata}")
+        # print(f"Plotdata = {plotdata}")
 
         distance_df_path = os.path.join(settings.BASE_DIR, 'static', 'myapp', 'distance_df.fth')
         distance_df = pd.read_feather(distance_df_path)
@@ -577,8 +574,8 @@ def get_alignment_summary(request):
     if request.method == 'POST':
         data = json.loads(request.body)
 
-        print('allignment summary called')
-        pprint(data)
+        # print('allignment summary called')
+        # pprint(data)
         uuid = data.get('uuid')
         x_text = data.get('x_text', '')
         y_text = data.get('y_text', '')
