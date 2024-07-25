@@ -100,7 +100,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            height: 600px;
+            height: 100%;
             /* Add this line to make the container take full width */
             max-width: 1000px;
             /* Adjust the value as needed */
@@ -145,6 +145,7 @@
             background-color: #f0f0f0;
             border-radius: 4px;
             animation: skeleton-loading 1s infinite alternate;
+            height: 600px;
         }
 
         @keyframes skeleton-loading {
@@ -242,24 +243,10 @@
         }
 
         #plot-container {
-            width: 100%;
-            height: 100%;
-        }
+        width: 100%;
+        height: 600px; /* Adjust this value as needed */
+    }
 
-        /* @media screen and (max-width: 768px) {
-            .box-container {
-                flex-direction: column;
-            }
-
-            .column.is-one-third,
-            .column.is-two-thirds {
-                width: 100%;
-            }
-
-            .plot-container {
-                height: 400px;
-            }
-        } */
     </style>
 </head>
 
@@ -429,10 +416,14 @@
                 <div class="column is-full-mobile is-two-thirds-tablet">
                     <div class="box">
                         <div id="plot-container">
-                            <!-- Skeleton loader for the plot -->
+                            <!-- Skeleton loader for the plot
                             <div id="plot-skeleton" class="is-loading">
                                 <iframe id="plot-container" src="{% static 'myapp/initial_plot_filename.html' %}" width="100%"  frameborder="0"></iframe>
+                            </div> -->
+                            <div id="plot-skeleton" class="is-loading">
+                                <div class="skeleton-box" style="width: 100%; height: 600px;"></div>
                             </div>
+                            <div id="plot-container" style="display: none;"></div>
                         </div>
                     </div>
                 </div>

@@ -155,6 +155,13 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         showlegend=False
     )
 
+    camera = dict(
+        eye=dict(
+            x=2,
+            y=2,
+            z=2
+        )
+    )
 
     layout = dict(
         autosize=True,
@@ -189,7 +196,7 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         # width=800,  # Adjust the width as needed
         # height=600,  # Adjust the height as needed
         margin=dict(r=10, l=10, b=0, t=10),
-        # scene_camera=camera,
+        scene_camera=camera,
     )
 
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
