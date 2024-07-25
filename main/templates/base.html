@@ -243,10 +243,10 @@
         }
 
         #plot-container {
-        width: 100%;
-        height: 600px; /* Adjust this value as needed */
-    }
-
+            width: 100%;
+            height: 600px;
+            /* Adjust this value as needed */
+        }
     </style>
 </head>
 
@@ -416,9 +416,10 @@
                 <div class="column is-full-mobile is-two-thirds-tablet">
                     <div class="box">
                         <div id="plot-container">
-                            <!-- Skeleton loader for the plot
-                            <div id="plot-skeleton" class="is-loading">
-                                <iframe id="plot-container" src="{% static 'myapp/initial_plot_filename.html' %}" width="100%"  frameborder="0"></iframe>
+                            <!-- Skeleton loader for the plot -->
+                            <!-- <div id="plot-skeleton" class="is-loading">
+                                <iframe id="plot-container" src="{% static 'myapp/initial_plot_filename.html' %}"
+                                    width="100%" frameborder="0"></iframe>
                             </div> -->
                             <div id="plot-skeleton" class="is-loading">
                                 <div class="skeleton-box" style="width: 100%; height: 600px;"></div>
@@ -787,38 +788,46 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         }
 
         function spinPlot() {
-    var plot = document.getElementById('plot-container');
-    var layout = plot.layout;
-    var initialEye = {x: 1.25, y: 1.25, z: 1.25};
-    var finalEye = {x: 2, y: 2, z: 2};
-    var frames = [];
-    var n = 60; // number of frames
+            var plot = document.getElementById('plot-container');
+            var layout = plot.layout;
 
-    for (var i = 0; i < n; i++) {
-        var t = i / (n - 1);
-        var angle = -0.5 * Math.PI * t; // Full rotation
-        var angle2 = 0.5 * Math.PI * t;
-        frames.push({
-            layout: {
-                scene: {
-                    camera: {
-                        eye: {
-                            x: (initialEye.x + (finalEye.x - initialEye.x) * t) ,
-                            y: (initialEye.y + (finalEye.y - initialEye.y) * t) * Math.sin(angle),
-                            z: (initialEye.z + (finalEye.z - initialEye.z) * t) * Math.sin(-angle/5)
+            // Initial and final camera positions
+            var initialEye = { x: 1.25, y: 1.25, z: 1.25 };
+            var finalEye = { x: 2, y: -2, z: 0.618 };
+
+            var frames = [];
+            var n = 120; // number of frames
+
+            Plotly.relayout('plot-container', {
+        'scene.camera.eye': initialEye
+        }).then(() => {
+
+            for (var i = 0; i < n; i++) {
+                var t = i / (n - 1);
+
+                frames.push({
+                    layout: {
+                        scene: {
+                            camera: {
+                                eye: {
+                                    x: initialEye.x + (finalEye.x - initialEye.x) * t,
+                                    y: initialEye.y + (finalEye.y - initialEye.y) * t,
+                                    z: initialEye.z + (finalEye.z - initialEye.z) * t
+                                }
+                            }
                         }
                     }
-                }
+                });
             }
+            Plotly.animate('plot-container', frames, {
+                frame: { duration: 30, redraw: true },
+                transition: { duration: 30 ,easing:'cubic-in-out'},
+                mode: 'next'
+            });
         });
-    }
+        }
 
-    Plotly.animate('plot-container', frames, {
-        frame: { duration: 30, redraw: true },
-        transition: { duration: 30 },
-        mode: 'next'
-    });
-}
+
 
 
         // Function to update the progress bar labels and values
@@ -832,7 +841,6 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             var xValues = plotData[0].x;
             var yValues = plotData[0].y;
             var zValues = plotData[0].z;
-            console.log(xValues)
             // Calculate the minimum and maximum values for x, y, and z
             var xMin = Math.min(...xValues);
             var xMax = Math.max(...xValues);
@@ -881,6 +889,30 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             progressBar.title = (correlation - 1).toFixed(2);
         }
 
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch("{% static 'myapp/initial_plot_data.json' %}")
+                .then(response => response.json())
+                .then(plotInfo => {
+                    
+                    Plotly.newPlot('plot-container', JSON.parse(plotInfo.data), plotInfo.layout, { responsive: true });
+                    var plot = document.getElementById('plot-container');
+                    var layout = plot.layout;
+                    console.log({ 'datab4spin': layout })
+                    sleep(2000).then(() => { spinPlot() });
+
+
+
+                    // updateCorrelationBars(plotInfo.corr);
+                    // updateProgressBars();
+                    document.getElementById('correlation-skeleton').style.display = 'none';
+                    document.getElementById('correlation-content').style.display = 'block';
+
+                });
+        });
 
         // Fetch initial plot data from Django
         fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
@@ -890,22 +922,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('plot-skeleton').style.display = 'none';
                 document.getElementById('plot-container').style.display = 'block';
                 // Initialize the plot with the initial data and axis labels
-                console.log('Received data.layout:', data.layout);
+                // console.log('Received data.layout:', data.layout);
                 var config = {
                     responsive: true,
                     displayModeBar: false // Optional: hides the mode bar for a cleaner look
                 };
-                Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout, { responsive: true });
-                setTimeout(function() {
-                    window.dispatchEvent(new Event('resize'));
-                    Plotly.Plots.resize('plot-container');
-                }, 100);
-                // Plotly.newPlot('subcomponent-plot-container', JSON.parse(data.data), data.layout);
-                // Hide skeleton and show actual correlation content
-                document.getElementById('correlation-skeleton').style.display = 'none';
-                document.getElementById('correlation-content').style.display = 'block';
-
-                // Update the progress bars
 
                 updateCorrelationBars(data.corr);
 
@@ -913,8 +934,6 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 var plot = document.getElementById('plot-container');
                 var xMax = plot.layout.scene.xaxis.range[1];
 
-                console.log(plot.data)
-                spinPlot();
 
                 // Get the plot data
                 var plotData = plot.data;
@@ -922,7 +941,6 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 var xValues = plotData[0].x;
                 var yValues = plotData[0].y;
                 var zValues = plotData[0].z;
-                console.log(xValues)
                 // Calculate the minimum and maximum values for x, y, and z
                 var xMin = Math.min(...xValues);
                 var xMax = Math.max(...xValues);
@@ -987,8 +1005,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         document.getElementById('x-progress').value = pointData.ranges.x_range[1] - data.summary.x;
                         document.getElementById('y-progress').value = pointData.ranges.y_range[1] - data.summary.y;
                         document.getElementById('z-progress').value = pointData.ranges.z_range[1] - data.summary.z;
-                        console.log('x_value', data.summary.x, 'x_min', pointData.ranges.x_range[1])
-                        console.log(data.highlight_trace)
+                        // console.log('x_value', data.summary.x, 'x_min', pointData.ranges.x_range[1])
+                        // console.log(data.highlight_trace)
                         var plot = document.getElementById('plot-container');
                         var currentCamera = plot.layout.scene.camera;
                         var updatedLayout = Object.assign({}, plot.layout);
