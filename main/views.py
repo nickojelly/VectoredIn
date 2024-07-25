@@ -134,6 +134,7 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
     yz_cor = np.corrcoef(y, z)[0,1]+1
 
     trace = go.Scatter3d(
+        
         x=x,
         y=y,
         z=z,
@@ -150,46 +151,16 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
             len=0.75,
         )
         ),
-
-        
         text=distance_df['title']+' | '+distance_df['company_name'],
         hoverinfo='text',
         name='Semantic Distance',
         customdata=custom_data,
         showlegend=False
     )
-    # distance_df = red_point
-    # x = distance_df['x_dist'].values
-    # y = distance_df['y_dist'].values
-    # z = distance_df['z_dist'].values
-    # custom_data = distance_df.wv_uuid.values
 
-#     red_pointtrace = go.Scatter3d(
-#         x=x,
-#         y=y,
-#         z=z,
-#         mode='markers',
-#         marker=dict(
-#             size=8,
-#             color='red',
-#             symbol='diamond',
-#             # colorscale='Viridis',
-#             opacity=1,
-#             # colorbar=dict(title='Semantic Distance')
-#         ),
-#         text=distance_df['title']+' | '+distance_df['company_name'],
-#         hoverinfo='text',
-#         # name='Semantic Distance',
-#         customdata=custom_data,
-#         showlegend=False
-#     )
-#     camera = dict(
-#     up=dict(x=0, y=0, z=1),
-#     center=dict(x=0, y=0, z=0),
-#     eye=dict(x=2.5, y=2.5, z=2.5)
-# )
 
     layout = dict(
+        autosize=True,
         scene=dict(
             aspectmode='cube',
             xaxis=dict(
@@ -218,8 +189,8 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
             ),
         ),
         hovermode='closest',
-        width=800,  # Adjust the width as needed
-        height=600,  # Adjust the height as needed
+        # width=800,  # Adjust the width as needed
+        # height=600,  # Adjust the height as needed
         margin=dict(r=10, l=10, b=0, t=10),
         # scene_camera=camera,
     )
@@ -227,7 +198,7 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
 
     fig = go.Figure(data=[trace], layout=layout)
-    plot(fig, auto_open=False, filename='fullplot.html')
+    # plot(fig, auto_open=False, filename='fullplot.html')
 
     return plot_div, [trace], layout, [xy_cor, xz_cor, yz_cor]
 
@@ -405,10 +376,6 @@ def get_point_calculations(request):
         global_min = min(x.min(), y.min(), z.min())
         global_max = max(x.max(), y.max(), z.max())
 
-        
-
-        # print(f"Entity df = {entities}")
-        # print(f"Embedding indicies = {entity_indicies}")
         print(f"uuid = {uuid}")
         print(f"vector = {vector}")
         min_x = min(point_data['ranges']['x_range'][0], x.min())
@@ -422,19 +389,18 @@ def get_point_calculations(request):
             y=y,
             z=z,
             mode='markers',
-            showlegend=False,
-    marker=dict(
-        size=8,
-        color=x+y+z,
-        colorscale='Viridis',
-        opacity=1,
-        colorbar=dict(
+            marker=dict(
+            size=8,
+            color=x+y+z,
+            colorscale='Viridis',
+            opacity=1,
+                    colorbar=dict(
             title='Semantic Distance',
             x=0.85,
             y=0.5,
             len=0.75,
-        )
-    ),
+        ),),
+            showlegend=False,
             text=[truncate_text(f"{entity} : {text}") for entity, text in zip(entities['entity'], entities['text'])],
             hoverinfo='text',
             name='Sub Component Distances',
@@ -458,6 +424,8 @@ def get_point_calculations(request):
         )
 
         layout = dict(
+            # reponsive=True,
+            autosize=True,
             scene=dict(
                 aspectmode='cube',
                 xaxis=dict(
@@ -486,8 +454,8 @@ def get_point_calculations(request):
                 ),
             ),
             hovermode='closest',
-            width=800,  # Adjust the width as needed
-            height=600,  # Adjust the height as needed
+            # width=800,  # Adjust the width as needed
+            # height=600,  # Adjust the height as needed
             margin=dict(r=10, l=10, b=10, t=10),
             scene_camera = dict(
                 up=dict(x=0, y=0, z=1),
@@ -499,16 +467,10 @@ def get_point_calculations(request):
         plot_div = plot({'data': [trace, original_vector_trace], 'layout': layout}, output_type='div', config={'responsive': True})
         print('returing')
         fig = go.Figure(data=[trace, original_vector_trace], layout=layout)
-        plot(fig, auto_open=False)
-        # with open('sub_component_plot.html', 'w') as f:
-        #     f.write(plot_html)
-            # Convert plot_data to a JSON-serializable format
         plot_data_json = json.dumps([trace, original_vector_trace], cls=PlotlyJSONEncoder)
-        # plot_div.
         response_data = {
             'data': plot_data_json, 
             'layout': layout,
-            # 'corr': corr
         }
 
         return JsonResponse(response_data)
@@ -534,6 +496,24 @@ def get_point_summary(request):
 
 
         # print(f"Annotations = {annotations}, type {type(annotations)}, text = {text}")
+        highlight_trace = go.Scatter3d(
+            x=[x],
+            y=[y],
+            z=[z],
+            mode='markers',
+            marker=dict(
+                size=8,
+                color='red',
+                symbol='diamond',
+            ),
+            text=[f"{title} | {company_name}"],
+            hoverinfo='text',
+            name='Average Embedding Distance',
+            showlegend=False
+        )
+
+        highlight_trace = json.dumps([highlight_trace], cls=PlotlyJSONEncoder)
+
 
         formatted_text = format_description_with_ner(text, annotations)
 
@@ -549,10 +529,13 @@ def get_point_summary(request):
             'y': y,
             'z': z
         }
-        return JsonResponse({'summary': summary_data})
+        
+        return JsonResponse({'summary': summary_data,'highlight_trace': highlight_trace})
         # else:
             # return JsonResponse({'summary': None})
         
+
+
 @csrf_exempt
 def generate_plot_summary(request):
     if request.method == 'POST':
@@ -580,6 +563,8 @@ def generate_plot_summary(request):
         uuids = [min_x_uuid, min_y_uuid, min_z_uuid]
 
         text = (x_text, y_text, z_text)
+
+
 
 
         plot_summary = gen_utils.generate_plot_summary(uuids,text, client = weaviate_client, openai_client=openai_client)

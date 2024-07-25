@@ -99,10 +99,23 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
+            height: 600px;
             /* Add this line to make the container take full width */
             max-width: 1000px;
             /* Adjust the value as needed */
             margin: 0 auto;
+        }
+
+        @media screen and (max-width: 768px) {
+            .plot-container {
+                height: 400px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .plot-container {
+                height: 300px;
+            }
         }
 
         .correlation-box {
@@ -225,6 +238,19 @@
             background-color: white;
             border-color: #dbdbdb;
             border-bottom-color: transparent !important;
+        }
+
+        @media screen and (max-width: 768px) {
+            .box-container {
+                flex-direction: column;
+            }
+            .column.is-one-third,
+            .column.is-two-thirds {
+                width: 100%;
+            }
+            .plot-container {
+                height: 400px;
+            }
         }
     </style>
 </head>
@@ -397,7 +423,7 @@
                         <div id="plot-container">
                             <!-- Skeleton loader for the plot -->
                             <div id="plot-skeleton" class="is-loading">
-                                <div class="skeleton-box" style="width: 100%; height: 400px;"></div>
+                                <div class="skeleton-box" style="width: 100%; height: 100%;"></div>
                             </div>
                         </div>
                     </div>
@@ -857,7 +883,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('plot-container').style.display = 'block';
                 // Initialize the plot with the initial data and axis labels
                 console.log('Received data.layout:', data.layout);
-                Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout);
+                var config = {
+                    responsive: true,
+                    displayModeBar: false // Optional: hides the mode bar for a cleaner look
+                };
+                Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout, {responsive: true});
                 // Plotly.newPlot('subcomponent-plot-container', JSON.parse(data.data), data.layout);
                 // Hide skeleton and show actual correlation content
                 document.getElementById('correlation-skeleton').style.display = 'none';
@@ -902,10 +932,6 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('y-progress').max = yMax - yMin;
                 document.getElementById('z-progress').max = zMax - zMin;
 
-                // Do something with the minimum and maximum values
-                console.log('X range:', xMin, xMax);
-                console.log('Y range:', yMin, yMax);
-                console.log('Z range:', zMin, zMax);
                 plot.on('plotly_click', function (eventData) {
                     var point = eventData.points[0];
                     pointData = {
@@ -920,12 +946,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         }
                     };
 
+                    
                     // Call function to quickly return text
+                    
                     getQuickSummary(pointData);
-
                     getRelatedRoles(pointData);
-
-                    // Call function to perform calculations
                     getDetailedCalculations(pointData);
 
                 });
@@ -943,6 +968,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
                     if (data.summary) {
+                        
                         document.getElementById('summary-title').textContent = data.summary.title;
                         document.getElementById('summary-company').textContent = data.summary.company;
                         document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
@@ -950,6 +976,17 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         document.getElementById('y-progress').value = pointData.ranges.y_range[1] - data.summary.y;
                         document.getElementById('z-progress').value = pointData.ranges.z_range[1] - data.summary.z;
                         console.log('x_value', data.summary.x, 'x_min', pointData.ranges.x_range[1])
+                        console.log(data.highlight_trace)
+                        var plot = document.getElementById('plot-container');
+                        var currentCamera = plot.layout.scene.camera;
+                        var updatedLayout = Object.assign({}, plot.layout);
+                        updatedLayout.scene.camera = currentCamera;
+                        // updatedLayout.responsive = true;
+                        Plotly.react('plot-container', [
+                            plot.data[0],  // Original trace
+                            JSON.parse(data.highlight_trace)[0]
+                              // New highlight trace
+                        ],updatedLayout);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -995,7 +1032,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
 
-                    Plotly.react('subcomponent-plot-container', JSON.parse(data.data), data.layout);
+                    Plotly.react('subcomponent-plot-container', JSON.parse(data.data), data.layout,  {responsive: true});
                 })
                 .catch(error => console.error('Error: AHHHHH', error));
         }
@@ -1238,6 +1275,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 plotSummaryModal.classList.remove('is-active');
                 alignmentModal.classList.remove('is-active');
             });
+        });
+
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize('plot-container');
+            Plotly.Plots.resize('subcomponent-plot-container')
         });
 
         document.addEventListener('DOMContentLoaded', function () {
