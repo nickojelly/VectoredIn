@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-700LG6TF98"></script>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> -->
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
@@ -106,7 +107,7 @@
             margin: 0 auto;
         }
 
-        /* @media screen and (max-width: 768px) {
+        @media screen and (max-width: 768px) {
             .plot-container {
                 height: 400px;
             }
@@ -116,7 +117,7 @@
             .plot-container {
                 height: 300px;
             }
-        } */
+        }
 
         .correlation-box {
             width: 150px;
@@ -240,18 +241,25 @@
             border-bottom-color: transparent !important;
         }
 
-        @media screen and (max-width: 768px) {
+        #plot-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* @media screen and (max-width: 768px) {
             .box-container {
                 flex-direction: column;
             }
+
             .column.is-one-third,
             .column.is-two-thirds {
                 width: 100%;
             }
+
             .plot-container {
                 height: 400px;
             }
-        }
+        } */
     </style>
 </head>
 
@@ -285,9 +293,10 @@
 
     {% if request.path == '/' %}
     <section class="section">
-        <div class="container">
-            <div class="box-container">
-                <div class="column is-one-third">
+        <div class="container mb-5">
+            <h1 class="title">3-axis Semantic Cosine Distance</h1>
+            <div class="columns is-multiline">
+                <div class="column is-full-mobile is-one-third-tablet">
                     <div class="box form-box">
                         <h3 class="title is-4">
                             Semantic Axis
@@ -417,12 +426,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="column is-two-thirds">
+                <div class="column is-full-mobile is-two-thirds-tablet">
                     <div class="box">
                         <div id="plot-container">
                             <!-- Skeleton loader for the plot -->
                             <div id="plot-skeleton" class="is-loading">
-                                <div class="skeleton-box" style="width: 100%; height: 100%;"></div>
+                                <iframe id="plot-container" src="{% static 'myapp/initial_plot_filename.html' %}" width="100%"  frameborder="0"></iframe>
                             </div>
                         </div>
                     </div>
@@ -787,30 +796,39 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         }
 
         function spinPlot() {
-            var frames = [];
-            var n = 100; // number of frames
-            for (var i = 0; i < n; i++) {
-                frames.push({
-                    layout: {
-                        scene: {
-                            camera: {
-                                eye: {
-                                    x: 1.25 * Math.cos(2 * Math.PI * i / n),
-                                    y: 1.25 * Math.sin(2 * Math.PI * i / n),
-                                    z: 1.25
-                                }
-                            }
+    var plot = document.getElementById('plot-container');
+    var layout = plot.layout;
+    var initialEye = {x: 1.25, y: 1.25, z: 1.25};
+    var finalEye = {x: 2, y: 2, z: 2};
+    var frames = [];
+    var n = 60; // number of frames
+
+    for (var i = 0; i < n; i++) {
+        var t = i / (n - 1);
+        var angle = -0.5 * Math.PI * t; // Full rotation
+        var angle2 = 0.5 * Math.PI * t;
+        frames.push({
+            layout: {
+                scene: {
+                    camera: {
+                        eye: {
+                            x: (initialEye.x + (finalEye.x - initialEye.x) * t) ,
+                            y: (initialEye.y + (finalEye.y - initialEye.y) * t) * Math.sin(angle),
+                            z: (initialEye.z + (finalEye.z - initialEye.z) * t) * Math.sin(-angle/5)
                         }
                     }
-                });
+                }
             }
+        });
+    }
 
-            Plotly.animate('plot-container', frames, {
-                frame: { duration: 30, redraw: false },
-                transition: { duration: 0 },
-                mode: 'immediate'
-            });
-        }
+    Plotly.animate('plot-container', frames, {
+        frame: { duration: 30, redraw: true },
+        transition: { duration: 30 },
+        mode: 'next'
+    });
+}
+
 
         // Function to update the progress bar labels and values
         function updateProgressBars() {
@@ -886,7 +904,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     responsive: true,
                     displayModeBar: false // Optional: hides the mode bar for a cleaner look
                 };
-                Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout, {responsive: true});
+                Plotly.newPlot('plot-container', JSON.parse(data.data), data.layout, { responsive: true });
+                setTimeout(function() {
+                    window.dispatchEvent(new Event('resize'));
+                    Plotly.Plots.resize('plot-container');
+                }, 100);
                 // Plotly.newPlot('subcomponent-plot-container', JSON.parse(data.data), data.layout);
                 // Hide skeleton and show actual correlation content
                 document.getElementById('correlation-skeleton').style.display = 'none';
@@ -945,9 +967,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         }
                     };
 
-                    
+
                     // Call function to quickly return text
-                    
+
                     getQuickSummary(pointData);
                     getRelatedRoles(pointData);
                     getDetailedCalculations(pointData);
@@ -967,7 +989,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
                     if (data.summary) {
-                        
+
                         document.getElementById('summary-title').textContent = data.summary.title;
                         document.getElementById('summary-company').textContent = data.summary.company;
                         document.getElementById('summary-description').innerHTML = data.summary.formatted_description;
@@ -984,8 +1006,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         Plotly.react('plot-container', [
                             plot.data[0],  // Original trace
                             JSON.parse(data.highlight_trace)[0]
-                              // New highlight trace
-                        ],updatedLayout);
+                            // New highlight trace
+                        ], updatedLayout);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -1031,7 +1053,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
 
-                    Plotly.react('subcomponent-plot-container', JSON.parse(data.data), data.layout,  {responsive: true});
+                    Plotly.react('subcomponent-plot-container', JSON.parse(data.data), data.layout, { responsive: true });
                 })
                 .catch(error => console.error('Error: AHHHHH', error));
         }
@@ -1276,7 +1298,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             });
         });
 
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             Plotly.Plots.resize('plot-container');
             Plotly.Plots.resize('subcomponent-plot-container')
         });
