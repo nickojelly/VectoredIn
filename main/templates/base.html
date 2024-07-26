@@ -961,6 +961,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('z-progress').max = zMax - zMin;
 
                 setupPlotlyClickListener();
+                updateCorrelationBars(data.corr);
             });
         var pointData = null;
 
