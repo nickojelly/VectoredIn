@@ -18,36 +18,21 @@
                 <div class="column">
                     <div class="box">
                         <h1 class="title">About this project</h1>
-                        <p class="mb-4">This project has stemmed from a Machine Learning Engineering challenge from
-                            Weaviate. The challenge
-                            revolved around making a workflow using some of Weaviate's core tools. At its core, Weaviate
-                            is an
-                            open-source vector database that has additional tooling to help you interact with and
-                            analyze your
-                            data.</p>
-                        <p class="mb-4">One track of the challenge involved clustering and analysis of a dataset
-                            containing job postings from LinkedIn over 2023-24.
-                            Using this as our jumping-off point, this is what the core of the website is centered
-                            around, visualizing the relationship between job listings and user defined terms.</p>
-
-
-                        <p class="mb-4">Let's have a look at how Weaviate to utilized to achieve this.</p>
+                        <p class="mb-4">Welcome to VectoredIn! It aims to provide a powerful tool for analyzing and visualizing job market data using Open-Source Vector Databases from Weaviate, alongside other LLM and NLP tools to provide insight into a vast array of job posting. </p>
                     </div>
-                    <a href="https://github.com/nickojelly/VectoredIn" target="_blank" rel="noopener noreferrer" class="box">
+                    <a href="https://nbdata.co/blog/sub_component_embedding/" target="_blank" rel="noopener noreferrer" class="box">
                         <div class="card">
                             <div class="card-content">
                                 <div class="media">
                                     <div class="media-left">
-                                        <figure class="image is-32x32">
-                                            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo">
-                                        </figure>
+                                        <img src="{% static 'img/logo.png' %}" alt="Logo" width="65" height="35">
                                     </div>
                                     <div class="media-content">
-                                        <p class="title is-6">GitHub Repository</p>
+                                        <p class="title is-6">Blog</p>
                                     </div>
                                 </div>
                                 <div class="content" style="font-size: 14px;">
-                                    <p>See the GitHub Repo for more in depth implementation details</p>
+                                    <p>Check out the blog posts on the site for a more detailed explanations of the motivations and technology.</p>
                                 </div>
                             </div>
                         </div>
@@ -70,7 +55,7 @@
                                 </div>
 
                                 <div class="content" style="font-size: 14px;">
-                                    <p>Check out Weaviate, the open-source vector database used in this project!</p>
+                                    <p>Check out Weaviate, the open-source vector database used in this project.</p>
                                 </div>
                             </div>
                         </div>
@@ -94,42 +79,11 @@
                                 </div>
 
                                 <div class="content" style="font-size: 14px;">
-                                    <p>Here is the relevant Kaggle dataset used in this project.</p>
+                                    <p>Here is the relevant Kaggle dataset used in this project, this dataset was expanded to encompass over 1 million jobs.</p>
                                 </div>
                             </div>
                         </div>
                     </a>
-                </div>
-            </div>
-            <div class="box">
-                <h2 class="title is-4">Vector Databases in Weaviate</h2>
-                <p class="mb-4">We won't cover off everything about Vector Databases here, but there is a <a
-                        href="https://weaviate.io/blog/what-is-a-vector-database" target="_blank"
-                        rel="noopener noreferrer">good explainer from Weaviate</a>. But let's cover of some of the points
-                    that we need for later on:</p>
-                <div class="box">
-                    <h3 class="title is-4">Vectors</h3>
-                    <p class="mb-4">In the context of machine learning, a <b>vector</b> is a mathematical representation
-                        of an object or concept in a high-dimensional space, or put simply an array of numbers
-                        [0.1,0.3,-0.2,...].</p>
-                </div>
-                <div class="box">
-                    <h3 class="title is-4">Embedding</h3>
-                    <p class="mb-4">An <b>embedding</b> is the process of converting data (in our case text data about
-                        job listings) into a <b>vector</b> representation that captures the semantic meaning and
-                        relationships of the data. We do this using the OpenAI embedding model: "text-embedding-3-small"
-                    </p>
-                </div>
-                <div class="box">
-                    <h3 class="title is-4">Cosine Distance</h3>
-                    <p class="mb-4">Now we have our job listing data represented as a <b>vector</b> we can easily
-                        calculate the distance between 2 vectors by using the cosine distance.
-                        The cosine distance is cosine similarity represented in positive space, and is calculated using
-                        this:</p>
-
-                    <pre class="mb-4"><code>cos_sim = np.dot(a, b)/(np.linalg.norm(a)*(np.linalg.norm(b)))
-cos_distance =  1 - cos_sim</pre></code>
-<p class="mb-4"> This is what is represented on the X,Y and Z axis of the chart on the main page. We take the <b>vector</b> which is an <b>embedding</b> of the data for a single job listing and then we calculate the distance from each of the <b>embeddings</b> for the axis (Data Scientist, Accountant, etc.). Then using these distance we can plot the cosine distances on a 3 axis plot.</p>
                 </div>
             </div>
             <div class="box">
