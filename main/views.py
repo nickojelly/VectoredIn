@@ -84,9 +84,9 @@ def update_data(x_text, y_text, z_text, k=5,n=10,rag=False):
         z_vector  = vectorize_query_db(z_text,False)
 
     # Rest of the code remains the same
-    x_list = hnsw_obj.serach_along_axis(x_vector, k,n=n)
-    y_list = hnsw_obj.serach_along_axis(y_vector, k,n=n)
-    z_list = hnsw_obj.serach_along_axis(z_vector, k,n=n)
+    x_list = hnsw_obj.serach_along_axis(x_vector, k,n=n, ef=max(20,k))
+    y_list = hnsw_obj.serach_along_axis(y_vector, k,n=n, ef=max(20,k))
+    z_list = hnsw_obj.serach_along_axis(z_vector, k,n=n, ef=max(20,k))
     full_list = x_list | y_list | z_list
 
     distance_list = []
