@@ -32,6 +32,7 @@ urlpatterns = [
     path('generate_plot_summary/', views.generate_plot_summary, name='generate_plot_summary'),
     path('get_alignment_summary/', views.get_alignment_summary, name='get_alignment_summary'),
     path('get_related_roles/', views.get_related_roles, name='get_related_roles'),
+    path('get_point_highlight/', views.get_point_highlight, name='get_related_roles'),
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

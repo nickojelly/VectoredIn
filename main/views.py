@@ -155,13 +155,13 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         showlegend=False
     )
 
-    camera = dict(
-        eye=dict(
-            x=2,
-            y=2,
-            z=2
-        )
-    )
+    # camera = dict(
+    #     eye=dict(
+    #         x=2,
+    #         y=2,
+    #         z=2
+    #     )
+    # )
 
     layout = dict(
         autosize=True,
@@ -196,7 +196,7 @@ def generate_plot(x_text, y_text, z_text,k=10,n=5, update=False,rag=False):
         # width=800,  # Adjust the width as needed
         # height=600,  # Adjust the height as needed
         margin=dict(r=10, l=10, b=0, t=10),
-        scene_camera=camera,
+        # scene_camera=camera,
     )
 
     plot_div = plot({'data': [trace], 'layout': layout}, output_type='div', config={'responsive': True})
@@ -482,6 +482,37 @@ def get_point_calculations(request):
         return plot_div, [trace], layout, 
 from plotly.offline import plot
 @csrf_exempt
+def get_point_highlight(request):
+    if request.method == 'POST':
+        point_data = json.loads(request.body)
+        print(point_data)
+        uuid = point_data['customData']
+        x = point_data['x']
+        y = point_data['y']
+        z = point_data['z']
+        highlight_trace = go.Scatter3d(
+            x=[x],
+            y=[y],
+            z=[z],
+            mode='markers',
+            marker=dict(
+                size=8,
+                color='red',
+                symbol='diamond',
+            ),
+            text=[point_data['text']],
+            hoverinfo='text',
+            name='Average Embedding Distance',
+            showlegend=False,
+            customdata=[point_data['customData']]
+        )
+
+        highlight_trace = json.dumps([highlight_trace], cls=PlotlyJSONEncoder)
+
+        return JsonResponse({'highlight_trace': highlight_trace})
+
+
+@csrf_exempt
 def get_point_summary(request):
     if request.method == 'POST':
         point_data = json.loads(request.body)
@@ -500,23 +531,23 @@ def get_point_summary(request):
 
 
         # print(f"Annotations = {annotations}, type {type(annotations)}, text = {text}")
-        highlight_trace = go.Scatter3d(
-            x=[x],
-            y=[y],
-            z=[z],
-            mode='markers',
-            marker=dict(
-                size=8,
-                color='red',
-                symbol='diamond',
-            ),
-            text=[f"{title} | {company_name}"],
-            hoverinfo='text',
-            name='Average Embedding Distance',
-            showlegend=False
-        )
+        # highlight_trace = go.Scatter3d(
+        #     x=[x],
+        #     y=[y],
+        #     z=[z],
+        #     mode='markers',
+        #     marker=dict(
+        #         size=8,
+        #         color='red',
+        #         symbol='diamond',
+        #     ),
+        #     text=[f"{title} | {company_name}"],
+        #     hoverinfo='text',
+        #     name='Average Embedding Distance',
+        #     showlegend=False
+        # )
 
-        highlight_trace = json.dumps([highlight_trace], cls=PlotlyJSONEncoder)
+        # highlight_trace = json.dumps([highlight_trace], cls=PlotlyJSONEncoder)
 
 
         formatted_text = format_description_with_ner(text, annotations)
@@ -534,7 +565,7 @@ def get_point_summary(request):
             'z': z
         }
         
-        return JsonResponse({'summary': summary_data,'highlight_trace': highlight_trace})
+        return JsonResponse({'summary': summary_data})
         # else:
             # return JsonResponse({'summary': None})
         

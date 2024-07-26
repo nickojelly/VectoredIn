@@ -281,7 +281,6 @@
     {% if request.path == '/' %}
     <section class="section">
         <div class="container mb-5">
-            <h1 class="title">3-axis Semantic Cosine Distance</h1>
             <div class="columns is-multiline">
                 <div class="column is-full-mobile is-one-third-tablet">
                     <div class="box form-box">
@@ -796,35 +795,35 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             var finalEye = { x: 2, y: -2, z: 0.618 };
 
             var frames = [];
-            var n = 120; // number of frames
+            var n = 60; // number of frames
 
             Plotly.relayout('plot-container', {
-        'scene.camera.eye': initialEye
-        }).then(() => {
+                'scene.camera.eye': initialEye
+            }).then(() => {
 
-            for (var i = 0; i < n; i++) {
-                var t = i / (n - 1);
+                for (var i = 0; i < n; i++) {
+                    var t = i / (n - 1);
 
-                frames.push({
-                    layout: {
-                        scene: {
-                            camera: {
-                                eye: {
-                                    x: initialEye.x + (finalEye.x - initialEye.x) * t,
-                                    y: initialEye.y + (finalEye.y - initialEye.y) * t,
-                                    z: initialEye.z + (finalEye.z - initialEye.z) * t
+                    frames.push({
+                        layout: {
+                            scene: {
+                                camera: {
+                                    eye: {
+                                        x: initialEye.x + (finalEye.x - initialEye.x) * t,
+                                        y: initialEye.y + (finalEye.y - initialEye.y) * t,
+                                        z: initialEye.z + (finalEye.z - initialEye.z) * t
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
+                }
+                Plotly.animate('plot-container', frames, {
+                    frame: { duration: 15, redraw: true },
+                    transition: { duration: 15, easing: 'cubic-in-out' },
+                    mode: 'next'
                 });
-            }
-            Plotly.animate('plot-container', frames, {
-                frame: { duration: 30, redraw: true },
-                transition: { duration: 30 ,easing:'cubic-in-out'},
-                mode: 'next'
             });
-        });
         }
 
 
@@ -897,12 +896,11 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             fetch("{% static 'myapp/initial_plot_data.json' %}")
                 .then(response => response.json())
                 .then(plotInfo => {
-                    
+
                     Plotly.newPlot('plot-container', JSON.parse(plotInfo.data), plotInfo.layout, { responsive: true });
                     var plot = document.getElementById('plot-container');
                     var layout = plot.layout;
-                    console.log({ 'datab4spin': layout })
-                    sleep(2000).then(() => { spinPlot() });
+                    spinPlot()
 
 
 
@@ -962,29 +960,84 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('y-progress').max = yMax - yMin;
                 document.getElementById('z-progress').max = zMax - zMin;
 
-                plot.on('plotly_click', function (eventData) {
-                    var point = eventData.points[0];
-                    pointData = {
-                        customData: point.customdata,
-                        x: point.x,
-                        y: point.y,
-                        z: point.z,
-                        ranges: {
-                            x_range: [xMin, xMax],
-                            y_range: [yMin, yMax],
-                            z_range: [zMin, zMax],
-                        }
-                    };
-
-
-                    // Call function to quickly return text
-
-                    getQuickSummary(pointData);
-                    getRelatedRoles(pointData);
-                    getDetailedCalculations(pointData);
-
-                });
+                setupPlotlyClickListener();
             });
+
+        function setupPlotlyClickListener() {
+            const plotContainer = document.getElementById('plot-container');
+
+            // Remove existing listeners
+            plotContainer.removeAllListeners('plotly_click');
+
+            plotContainer.once('plotly_click', function (eventData) {
+                const point = eventData.points[0];
+                const plot = document.getElementById('plot-container');
+                const plotData = plot.data[0];
+
+                // Calculate ranges
+                const xValues = plotData.x;
+                const yValues = plotData.y;
+                const zValues = plotData.z;
+
+                const xMin = Math.min(...xValues);
+                const xMax = Math.max(...xValues);
+                const yMin = Math.min(...yValues);
+                const yMax = Math.max(...yValues);
+                const zMin = Math.min(...zValues);
+                const zMax = Math.max(...zValues);
+
+                const pointData = {
+                    customData: point.customdata,
+                    x: point.x,
+                    y: point.y,
+                    z: point.z,
+                    ranges: {
+                        x_range: [xMin, xMax],
+                        y_range: [yMin, yMax],
+                        z_range: [zMin, zMax],
+                    },
+                    text: point.text,
+                };
+
+                getHighlightTrace(pointData);
+                getQuickSummary(pointData);
+                getRelatedRoles(pointData);
+                getDetailedCalculations(pointData);
+            });
+        }
+
+
+
+        function getHighlightTrace(pointData) {
+            fetch('/get_point_highlight/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(pointData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.highlight_trace) {
+                        var plot = document.getElementById('plot-container');
+                        var currentCamera = plot.layout.scene.camera;
+                        var updatedLayout = Object.assign({}, plot.layout);
+                        updatedLayout.scene.camera = currentCamera;
+                        // updatedLayout.responsive = true;
+                        console.log('camera', updatedLayout)
+                        console.log('scene',  plot.layout)
+                        Plotly.react('plot-container', [
+                            plot.data[0],  // Original trace
+                            JSON.parse(data.highlight_trace)[0]
+                            // New highlight trace
+                        ], updatedLayout);
+                        setupPlotlyClickListener();
+                    }
+                }).catch(error => console.error('Error:', error))
+                ;
+        }
+
 
         function getQuickSummary(pointData) {
             fetch('/get_point_summary/', {
@@ -1005,18 +1058,6 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         document.getElementById('x-progress').value = pointData.ranges.x_range[1] - data.summary.x;
                         document.getElementById('y-progress').value = pointData.ranges.y_range[1] - data.summary.y;
                         document.getElementById('z-progress').value = pointData.ranges.z_range[1] - data.summary.z;
-                        // console.log('x_value', data.summary.x, 'x_min', pointData.ranges.x_range[1])
-                        // console.log(data.highlight_trace)
-                        var plot = document.getElementById('plot-container');
-                        var currentCamera = plot.layout.scene.camera;
-                        var updatedLayout = Object.assign({}, plot.layout);
-                        updatedLayout.scene.camera = currentCamera;
-                        // updatedLayout.responsive = true;
-                        Plotly.react('plot-container', [
-                            plot.data[0],  // Original trace
-                            JSON.parse(data.highlight_trace)[0]
-                            // New highlight trace
-                        ], updatedLayout);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -1088,6 +1129,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             if (rag) {
                 url += '?rag=true';
             }
+            
+            var plot = document.getElementById('plot-container');
+            var currentCamera = plot.layout.scene.camera;
 
             fetch(url, {
                 method: 'GET',
@@ -1099,9 +1143,15 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 .then(response => response.json())
                 .then(data => {
                     // Update the plot with the new data and axis labels
-                    Plotly.react('plot-container', JSON.parse(data.data), data.layout);
-
+                    var updatedLayout = Object.assign({}, data.layout);
+                    updatedLayout.scene.camera = currentCamera;
+                    Plotly.react('plot-container', JSON.parse(data.data), updatedLayout).then(() => {
+                    setupPlotlyClickListener();
+                });
+                    
                     // Update the correlation values and labels
+
+
                     document.getElementById('xy-correlation').value = data.corr[0];
                     document.getElementById('xz-correlation').value = data.corr[1];
                     document.getElementById('yz-correlation').value = data.corr[2];
