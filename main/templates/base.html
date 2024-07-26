@@ -962,6 +962,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
 
                 setupPlotlyClickListener();
             });
+        var pointData = null;
 
         function setupPlotlyClickListener() {
             const plotContainer = document.getElementById('plot-container');
@@ -970,6 +971,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             plotContainer.removeAllListeners('plotly_click');
 
             plotContainer.once('plotly_click', function (eventData) {
+                // var pointdata = eventData.points[0];
                 const point = eventData.points[0];
                 const plot = document.getElementById('plot-container');
                 const plotData = plot.data[0];
@@ -986,7 +988,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 const zMin = Math.min(...zValues);
                 const zMax = Math.max(...zValues);
 
-                const pointData = {
+                pointData = {
                     customData: point.customdata,
                     x: point.x,
                     y: point.y,
@@ -998,6 +1000,8 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     },
                     text: point.text,
                 };
+
+                document.getElementById('alignment-summary-content').innerHTML = '';
 
                 getHighlightTrace(pointData);
                 getQuickSummary(pointData);
@@ -1026,7 +1030,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                         updatedLayout.scene.camera = currentCamera;
                         // updatedLayout.responsive = true;
                         console.log('camera', updatedLayout)
-                        console.log('scene',  plot.layout)
+                        console.log('scene', plot.layout)
                         Plotly.react('plot-container', [
                             plot.data[0],  // Original trace
                             JSON.parse(data.highlight_trace)[0]
@@ -1129,7 +1133,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
             if (rag) {
                 url += '?rag=true';
             }
-            
+
             var plot = document.getElementById('plot-container');
             var currentCamera = plot.layout.scene.camera;
 
@@ -1146,9 +1150,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     var updatedLayout = Object.assign({}, data.layout);
                     updatedLayout.scene.camera = currentCamera;
                     Plotly.react('plot-container', JSON.parse(data.data), updatedLayout).then(() => {
-                    setupPlotlyClickListener();
-                });
-                    
+                        setupPlotlyClickListener();
+                    });
+
                     // Update the correlation values and labels
 
 
@@ -1228,6 +1232,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
 
         document.getElementById('generate-alignment-btn').addEventListener('click', function () {
             var button = this;
+            console.log('Alignemtn pressed');
             button.classList.add('is-loading');
 
             generateAlignmentSummary(button);
