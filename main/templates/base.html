@@ -901,8 +901,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     var plot = document.getElementById('plot-container');
                     var layout = plot.layout;
                     spinPlot()
-
-
+                    console.log('plotinfo',plotInfo)
 
                     // updateCorrelationBars(plotInfo.corr);
                     // updateProgressBars();
@@ -926,7 +925,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     displayModeBar: false // Optional: hides the mode bar for a cleaner look
                 };
 
-                updateCorrelationBars(data.corr);
+                //updateCorrelationBars(data.corr);
 
                 // Attach event listeners after the plot is initialized
                 var plot = document.getElementById('plot-container');
