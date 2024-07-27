@@ -904,7 +904,9 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                     console.log('plotinfo',plotInfo)
 
                     // updateCorrelationBars(plotInfo.corr);
-                    // updateProgressBars();
+
+                    var data_corr = [1.8, 0.9, 1.1]
+                    updateProgressBars(data_corr);
                     document.getElementById('correlation-skeleton').style.display = 'none';
                     document.getElementById('correlation-content').style.display = 'block';
 
@@ -912,6 +914,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
         });
 
         // Fetch initial plot data from Django
+        document.addEventListener('DOMContentLoaded', function () {
         fetch('/get_plot_data/{{ initial_x_text }}/{{ initial_y_text }}/{{ initial_z_text }}/')
             .then(response => response.json())
             .then(data => {
@@ -945,7 +948,7 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 var yMax = Math.max(...yValues);
                 var zMin = Math.min(...zValues);
                 var zMax = Math.max(...zValues);
-                updateProgressBars();
+                // updateProgressBars();
                 //Update progress Bars
                 var plot = document.getElementById('plot-container');
                 var xAxisLabel = plot.layout.scene.xaxis.title.text;
@@ -959,9 +962,12 @@ single_query = listings.generate.near_vector(near_vector=job_weaviate.vector['de
                 document.getElementById('y-progress').max = yMax - yMin;
                 document.getElementById('z-progress').max = zMax - zMin;
 
+                console.log('datacorr',data.corr)
+
                 setupPlotlyClickListener();
                 updateCorrelationBars(data.corr);
             });
+        })
         var pointData = null;
 
         function setupPlotlyClickListener() {
